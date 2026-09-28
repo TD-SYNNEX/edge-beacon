@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#005758" />
+    <title>EDGE Beacon | TD SYNNEX</title>
+    <meta
+      name="description"
+      content="Explore Cisco AI solutions, describe a customer need, compare options, and prepare a discovery brief with the TD SYNNEX partner accelerator."
+    />
+    <link rel="icon" type="image/png" href="/assets/td-synnex-logo.png" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to workspace</a>
+    <header class="header">
+      <button
+        class="icon-button mobile-menu"
+        id="menu-toggle"
+        aria-label="Open navigation"
+        aria-expanded="false"
+        aria-controls="sidebar"
+      >
+        <span data-icon="menu"></span>
+      </button>
+      <a class="brand" href="#discover" aria-label="TD SYNNEX, discovery home"
+        ><img
+          src="/assets/td-synnex-logo-reversed.png"
+          alt="TD SYNNEX"
+          width="185"
+          height="36"
+      /></a>
+      <div class="product-name">
+        EDGE Beacon<span>One place for the Cisco practice</span>
+      </div>
+      <div class="header-center">
+        <button
+          type="button"
+          class="atlas-search-trigger"
+          id="atlas-search-trigger"
+          aria-label="Open Beacon search"
+        >
+          <span data-icon="search"></span>
+          <span class="search-placeholder"
+            >Ask Beacon anything…</span
+          >
+          <span class="atlas-kbd"><kbd>⌘</kbd><kbd>K</kbd></span>
+        </button>
+      </div>
+      <div class="header-end">
+        <div class="perspective-selector">
+          <label for="perspective-select" class="visually-hidden"
+            >Perspective</label
+          >
+          <select id="perspective-select" aria-label="Perspective selector">
+            <option value="partner" selected>Partner View</option>
+            <option value="sales">Internal Sales</option>
+            <option value="practice_leader">Practice Leader</option>
+            <option value="admin">Platform Admin</option>
+          </select>
+        </div>
+        <div
+          class="segmented roles"
+          role="group"
+          aria-label="Choose workspace perspective"
+        >
+          <button type="button" data-role="partner" aria-pressed="true">
+            Partner
+          </button>
+          <button type="button" data-role="sales" aria-pressed="false">
+            Internal sales
+          </button>
+        </div>
+        <button
+          type="button"
+          class="icon-button"
+          id="header-ask-btn"
+          aria-label="Ask Beacon"
+          title="Ask Beacon"
+        >
+          <span data-icon="sparkles"></span>
+        </button>
+        <button
+          type="button"
+          class="icon-button"
+          data-action="help"
+          aria-label="How this workspace works"
+        >
+          <span data-icon="help"></span>
+        </button>
+      </div>
+    </header>
+    <div class="app-shell">
+      <div class="mobile-backdrop" id="mobile-backdrop" hidden></div>
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-top">
+          <span class="eyebrow">YOUR WORKSPACE</span
+          ><button
+            class="icon-button collapse"
+            id="collapse-toggle"
+            aria-label="Collapse sidebar"
+            aria-expanded="true"
+          >
+            <span data-icon="panel"></span>
+          </button>
+        </div>
+        <nav class="main-nav" aria-label="Workspace navigation">
+          <span class="nav-section-eyebrow">EDGE WORKFLOW</span>
+          <a
+            href="#home"
+            class="edge-nav-link"
+            data-page="home"
+            aria-current="page"
+          >
+            <div class="nav-row">
+              <span data-icon="home"></span>
+              <span class="nav-text">Home</span>
+            </div>
+            <span class="nav-sub">My EDGE · Priority Inbox</span>
+          </a>
+          <a
+            href="#engage"
+            class="edge-nav-link"
+            data-page="engage"
+            data-pillar="engage"
+          >
+            <div class="nav-row">
+              <span data-icon="compass"></span>
+              <span class="nav-text">Engage</span>
+            </div>
+            <span class="nav-sub">Get set up · Cisco 360</span>
+          </a>
+          <a
+            href="#develop"
+            class="edge-nav-link"
+            data-page="develop"
+            data-pillar="develop"
+          >
+            <div class="nav-row">
+              <span data-icon="graduation"></span>
+              <span class="nav-text">Develop</span>
+              <span class="nav-count">6</span>
+            </div>
+            <span class="nav-sub">Build skills · Labs &amp; PVI</span>
+          </a>
+          <a
+            href="#grow"
+            class="edge-nav-link"
+            data-page="grow"
+            data-pillar="grow"
+          >
+            <div class="nav-row">
+              <span data-icon="growth"></span>
+              <span class="nav-text">Grow</span>
+              <span class="nav-count">12</span>
+            </div>
+            <span class="nav-sub">Sell &amp; manage · Customers</span>
+          </a>
+          <a
+            href="#extend"
+            class="edge-nav-link"
+            data-page="extend"
+            data-pillar="extend"
+          >
+            <div class="nav-row">
+              <span data-icon="share"></span>
+              <span class="nav-text">Extend</span>
+            </div>
+            <span class="nav-sub">Connect &amp; share · MCP</span>
+          </a>
+
+          <div class="nav-divider"></div>
+          <span class="nav-section-eyebrow">CATALOG &amp; DISCOVERY</span>
+          <a href="#discover" data-page="discover">
+            <span data-icon="compass"></span>
+            <span class="nav-text">Find a solution</span>
+          </a>
+          <a href="#library" data-page="library">
+            <span data-icon="grid"></span>
+            <span class="nav-text">Turnkey solutions</span>
+            <span class="nav-count">12</span>
+          </a>
+          <a href="#use-cases" data-page="use-cases">
+            <span data-icon="layers"></span>
+            <span class="nav-text">Use-case atlas</span>
+            <span class="nav-count">375</span>
+          </a>
+          <a href="#shortlist" data-page="shortlist">
+            <span data-icon="bookmark"></span>
+            <span class="nav-text">My shortlist</span>
+            <span class="nav-count" id="shortlist-count">0</span>
+          </a>
+          <a href="#enablement" data-page="enablement">
+            <span data-icon="book-open"></span>
+            <span class="nav-text">Enablement</span>
+          </a>
+          <a href="#program" data-page="program">
+            <span data-icon="layers"></span>
+            <span class="nav-text">The accelerator</span>
+          </a>
+
+          <div class="nav-divider"></div>
+          <span class="nav-section-eyebrow">CONTROL PLANE</span>
+          <a
+            href="#admin"
+            class="edge-nav-link"
+            data-page="admin"
+            data-pillar="admin"
+          >
+            <div class="nav-row">
+              <span data-icon="sliders"></span>
+              <span class="nav-text">Admin</span>
+            </div>
+            <span class="nav-sub">Control Tower &amp; Intake</span>
+          </a>
+        </nav>
+        <div class="sidebar-note">
+          <div class="small-icon"><span data-icon="message"></span></div>
+          <h3>A better first conversation.</h3>
+          <p>
+            Bring the customer problem. Leave with a practical starting point.
+          </p>
+          <button class="text-button" type="button" data-action="start-brief">
+            Build a discovery brief <span data-icon="arrow"></span>
+          </button>
+        </div>
+        <div class="sidebar-foot">
+          <span class="small-logo-line"></span
+          ><span
+            >Cisco solutions<br /><strong>Enabled by TD SYNNEX</strong></span
+          >
+        </div>
+      </aside>
+      <main id="main" tabindex="-1">
+        <div class="workspace-topline">
+          <span id="breadcrumb"
+            >Workspace / <strong>Home — My EDGE</strong></span
+          ><span class="preview-label" id="role-preview-label"
+            >Partner workspace</span
+          >
+        </div>
+
+        <!-- Centralized EDGE Spine Workspaces -->
+        <section
+          class="page"
+          id="page-home"
+          aria-label="Home — My EDGE"
+        ></section>
+        <section
+          class="page"
+          id="page-engage"
+          aria-label="Engage Workspace"
+          hidden
+        ></section>
+        <section
+          class="page"
+          id="page-develop"
+          aria-label="Develop Workspace"
+          hidden
+        ></section>
+        <section
+          class="page"
+          id="page-grow"
+          aria-label="Grow Workspace"
+          hidden
+        ></section>
+        <section
+          class="page"
+          id="page-extend"
+          aria-label="Extend Workspace"
+          hidden
+        ></section>
+        <section
+          class="page"
+          id="page-admin"
+          aria-label="Admin Control Tower"
+          hidden
+        ></section>
+
+        <!-- Existing Discover / Catalog Pages (Mounted & Accessible) -->
+        <section
+          class="page"
+          id="page-discover"
+          aria-labelledby="discover-title"
+          hidden
+        >
+          <div class="page-heading discovery-hero">
+            <div>
+              <div class="eyebrow">CISCO AI · FROM POSSIBILITY TO PRACTICE</div>
+              <h1 id="discover-title">
+                Start with the outcome.<br />Find the right deliverable.
+              </h1>
+              <p id="discover-subtitle">
+                Browse turnkey solution capabilities and a broad use-case atlas
+                by product line and vertical. Describe a need when you want a
+                guided starting point.
+              </p>
+            </div>
+            <div class="hero-stats" aria-label="Catalog at a glance">
+              <div><strong>12</strong><span>Solution capabilities</span></div>
+              <div>
+                <strong>375</strong><span>Use-case starting points</span>
+              </div>
+              <div><strong>3</strong><span>Practice paths</span></div>
+            </div>
+          </div>
+          <div class="discovery-grid">
+            <form id="discovery-form" class="discovery-card">
+              <div class="card-heading">
+                <span class="step-label">01 / DISCOVER</span
+                ><span class="mode-badge" id="mode-badge">Guided matching</span>
+              </div>
+              <label class="form-title" for="need" id="need-label"
+                >Tell us what needs to work better.</label
+              >
+              <textarea
+                id="need"
+                name="need"
+                maxlength="5000"
+                minlength="20"
+                required
+                placeholder="Our customer manages 40 locations and spends hours checking network health. They want fewer manual tasks and a faster way to find issues…"
+              ></textarea>
+              <div class="textarea-bottom">
+                <span>Include the task, systems, and result you want.</span
+                ><span id="char-count">0 / 5,000</span>
+              </div>
+              <div class="field-grid">
+                <label
+                  >Industry<select id="industry" name="industry"></select
+                ></label>
+                <label
+                  >Main priority<select id="priority" name="priority"></select
+                ></label>
+                <label
+                  >Deployment<select id="deployment" name="deployment">
+                    <option>No preference</option>
+                    <option>Cloud</option>
+                    <option>Hybrid</option>
+                    <option>On-premises</option>
+                  </select></label
+                >
+                <label
+                  >Practice stage<select id="readiness" name="readiness">
+                    <option>Just exploring</option>
+                    <option>Building a practice</option>
+                    <option>Established practice</option>
+                  </select></label
+                >
+              </div>
+              <div class="field-grid sales-fields" id="sales-fields" hidden>
+                <label
+                  >Account or opportunity<input
+                    id="account"
+                    name="account"
+                    maxlength="150"
+                    placeholder="Optional account alias" /></label
+                ><label
+                  >Customer timing<select id="timing" name="timing">
+                    <option>To confirm</option>
+                    <option>Within 30 days</option>
+                    <option>This quarter</option>
+                    <option>Longer term</option>
+                  </select></label
+                >
+              </div>
+              <div class="form-actions">
+                <div>
+                  <button
+                    class="button primary"
+                    id="match-button"
+                    type="submit"
+                  >
+                    Find my solutions <span data-icon="arrow"></span>
+                  </button>
+                </div>
+                <span id="ai-note" class="form-note"
+                  >Catalog matching is ready.<br />AI is not connected
+                  yet.</span
+                >
+              </div>
+              <p id="form-error" class="form-error" role="alert" hidden></p>
+            </form>
+            <aside class="examples-panel" aria-labelledby="examples-title">
+              <div class="eyebrow">NEED A STARTING POINT?</div>
+              <h2 id="examples-title">Good questions start here.</h2>
+              <div id="examples"></div>
+              <div class="examples-footer">
+                <span data-icon="lightbulb"></span>
+                <p>Choose an example, then make it your own.</p>
+              </div>
+            </aside>
+          </div>
+          <div
+            id="discovery-results"
+            aria-live="polite"
+            aria-busy="false"
+          ></div>
+          <div id="starter-solutions">
+            <div class="section-heading">
+              <div>
+                <span class="step-label">02 / EXPLORE</span>
+                <h2>A few possibilities. A practical next step.</h2>
+              </div>
+              <a class="text-button" href="#use-cases"
+                >Browse the use-case atlas <span data-icon="arrow"></span
+              ></a>
+            </div>
+            <div class="solution-grid" id="starter-cards"></div>
+          </div>
+          <div class="flow-strip">
+            <div>
+              <span class="flow-number">01</span
+              ><span
+                ><strong>Describe the need</strong
+                ><small>A problem in your own words</small></span
+              >
+            </div>
+            <span data-icon="chevron"></span>
+            <div>
+              <span class="flow-number">02</span
+              ><span
+                ><strong>Understand the fit</strong
+                ><small>Solutions, value, and prerequisites</small></span
+              >
+            </div>
+            <span data-icon="chevron"></span>
+            <div>
+              <span class="flow-number">03</span
+              ><span
+                ><strong>Move the conversation forward</strong
+                ><small>A brief your team can use</small></span
+              >
+            </div>
+          </div>
+        </section>
+        <section
+          class="page"
+          id="page-library"
+          aria-labelledby="library-title"
+          hidden
+        >
+          <div class="page-heading compact">
+            <div>
+              <div class="eyebrow">TURNKEY DELIVERABLES</div>
+              <h1 id="library-title">Find your next AI opportunity.</h1>
+              <p>
+                Explore 12 capabilities by customer outcome. Find a fit, review
+                the prerequisites, and shape a pilot with your team.
+              </p>
+            </div>
+          </div>
+          <div class="library-toolbar">
+            <label class="search-field"
+              ><span data-icon="search"></span
+              ><input
+                id="solution-search"
+                type="search"
+                placeholder="Search a problem, product, or solution"
+                aria-label="Search solutions" /></label
+            ><label class="deployment-filter"
+              >Deployment<select id="library-deployment">
+                <option>All environments</option>
+                <option>Cloud</option>
+                <option>Hybrid</option>
+                <option>On-premises</option>
+              </select></label
+            >
+          </div>
+          <div
+            class="filter-chips"
+            id="category-filters"
+            role="group"
+            aria-label="Filter by solution category"
+          ></div>
+          <div class="results-meta">
+            <span id="library-count">12 turnkey solutions</span
+            ><span
+              >Capability catalog · confirm scope and availability during
+              discovery</span
+            >
+          </div>
+          <div class="solution-grid" id="library-cards"></div>
+          <div class="empty-state" id="library-empty" hidden>
+            <span data-icon="search"></span>
+            <h2>No solutions match those filters.</h2>
+            <p>Try another product, problem, or category.</p>
+            <button class="button secondary" data-action="reset-filters">
+              Clear filters
+            </button>
+          </div>
+        </section>
+        <section
+          class="page"
+          id="page-use-cases"
+          aria-labelledby="use-cases-title"
+          hidden
+        >
+          <div class="page-heading compact">
+            <div>
+              <div class="eyebrow">
+                375 STARTING POINTS · 15 PRODUCT LINES · 16 VERTICALS
+              </div>
+              <h1 id="use-cases-title">The use-case atlas.</h1>
+              <p>
+                Find the customer problem behind the technology. Filter by
+                product line or vertical, then open a use case to see the
+                deliverable, automation, systems, and discovery questions.
+              </p>
+            </div>
+            <span class="local-label"
+              ><span data-icon="layers"></span>Catalog view</span
+            >
+          </div>
+          <div class="atlas-toolbar">
+            <label class="search-field"
+              ><span data-icon="search"></span
+              ><input
+                id="use-case-search"
+                type="search"
+                placeholder="Search a customer problem, product, or outcome"
+                aria-label="Search use cases" /></label
+            ><label>Product line<select id="use-case-product"></select></label
+            ><label>Vertical<select id="use-case-vertical"></select></label>
+          </div>
+          <div class="results-meta">
+            <span id="use-case-count">375 use cases</span
+            ><span
+              >General solution ideas · validate customer fit and scope</span
+            >
+          </div>
+          <div id="use-case-grid" class="use-case-grid"></div>
+          <nav
+            id="use-case-pagination"
+            class="pagination"
+            aria-label="Use-case pages"
+            hidden
+          ></nav>
+          <div class="empty-state" id="use-case-empty" hidden>
+            <span data-icon="search"></span>
+            <h2>No use cases match those filters.</h2>
+            <p>Try another product line, vertical, or customer problem.</p>
+            <button class="button secondary" data-action="reset-use-cases">
+              Clear filters
+            </button>
+          </div>
+        </section>
+        <section
+          class="page"
+          id="page-shortlist"
+          aria-labelledby="shortlist-title"
+          hidden
+        >
+          <div class="page-heading compact">
+            <div>
+              <div class="eyebrow">FROM OPTIONS TO A PLAN</div>
+              <h1 id="shortlist-title">Your solution shortlist.</h1>
+              <p>
+                Compare up to three solutions and turn the conversation into a
+                discovery brief.
+              </p>
+            </div>
+            <span class="local-label"
+              ><span data-icon="bookmark"></span>Saved in this browser</span
+            >
+          </div>
+          <div id="shortlist-content"></div>
+        </section>
+        <section
+          class="page"
+          id="page-enablement"
+          aria-labelledby="enablement-title"
+          hidden
+        >
+          <div class="page-heading compact">
+            <div>
+              <div class="eyebrow">BUILD THE CAPABILITY TO DELIVER</div>
+              <h1 id="enablement-title">A learning path for every role.</h1>
+              <p>
+                Connect the customer opportunity to the skills your team needs
+                next.
+              </p>
+            </div>
+          </div>
+          <div class="enablement-banner">
+            <span class="banner-icon" data-icon="graduation"></span>
+            <div>
+              <span class="step-label">YOUR LEARNING LENS</span>
+              <h2 id="learning-heading">
+                Start the conversation. Then build the skills.
+              </h2>
+              <p>
+                Track outlines from the accelerator program. Session and lab
+                access are arranged during discovery.
+              </p>
+            </div>
+            <div
+              class="segmented on-dark"
+              role="group"
+              aria-label="Learning perspective"
+            >
+              <button data-learning="sales" aria-pressed="true">Sales</button
+              ><button data-learning="technical" aria-pressed="false">
+                Technical</button
+              ><button data-learning="builder" aria-pressed="false">
+                Builder
+              </button>
+            </div>
+          </div>
+          <div class="track-grid" id="track-cards"></div>
+          <details class="program-details">
+            <summary>
+              On-demand library plan <span data-icon="plus"></span>
+            </summary>
+            <p>
+              The supplied draft lists 40 recordings against a 124-recording
+              target. Recording links and availability have not been connected.
+            </p>
+            <div class="vod-plan" id="vod-plan"></div>
+          </details>
+          <div class="section-heading">
+            <div>
+              <span class="step-label">THE FOUNDATIONS</span>
+              <h2>AI literacy, from first principles to delivery.</h2>
+            </div>
+            <span class="muted">12 planned modules</span>
+          </div>
+          <div id="literacy-list" class="literacy-list"></div>
+        </section>
+        <section
+          class="page"
+          id="page-program"
+          aria-labelledby="program-title"
+          hidden
+        >
+          <div class="page-heading compact">
+            <div>
+              <div class="eyebrow">CISCO AI PARTNER ACCELERATOR</div>
+              <h1 id="program-title">Meet your practice where it is.</h1>
+              <p>
+                A proposed program for developing AI skills, testing customer
+                use cases, and building repeatable offers.
+              </p>
+            </div>
+          </div>
+          <div class="tier-grid" id="tier-cards"></div>
+          <div class="program-target">
+            <div>
+              <span class="eyebrow">PROGRAM PLANNING TARGET</span
+              ><strong>25 partner organizations</strong>
+            </div>
+            <p>
+              By November 10, 2026<br /><span
+                >Enrollment progress has not been connected.</span
+              >
+            </p>
+            <button class="button secondary" data-action="program-brief">
+              Build an enablement brief <span data-icon="arrow"></span>
+            </button>
+          </div>
+          <div class="section-heading">
+            <div>
+              <span class="step-label">WORK WITH THE TEAM</span>
+              <h2>Choose the engagement that fits.</h2>
+            </div>
+            <span class="muted">Formats from the program plan</span>
+          </div>
+          <div class="engagement-grid" id="engagement-cards"></div>
+          <details class="program-details">
+            <summary>
+              Program delivery roadmap <span data-icon="plus"></span>
+            </summary>
+            <div class="roadmap">
+              <div><b>Spec & discovery</b><span>Sep 14–25</span></div>
+              <div>
+                <b>Studio & partner portal</b><span>Sep 28–Oct 23</span>
+              </div>
+              <div><b>Partner analytics</b><span>Oct 26–Nov 13</span></div>
+              <div><b>Kit automation</b><span>Nov 16–Dec 11</span></div>
+              <div><b>Hardening</b><span>Dec 14–Jan 1</span></div>
+            </div>
+            <p>
+              Proposed milestones from the supplied brief; delivery dates and
+              availability need confirmation.
+            </p>
+          </details>
+        </section>
+        <footer class="workspace-footer">
+          <span>© 2026 TD SYNNEX · EDGE Beacon</span
+          ><button type="button" class="text-button" data-action="help">
+            About this workspace <span data-icon="external"></span>
+          </button>
+        </footer>
+      </main>
+    </div>
+    <dialog
+      id="detail-dialog"
+      class="detail-dialog"
+      aria-labelledby="detail-title"
+    >
+      <div id="detail-content"></div>
+    </dialog>
+    <dialog
+      id="brief-dialog"
+      class="brief-dialog"
+      aria-labelledby="brief-title"
+    >
+      <div class="dialog-top">
+        <div>
+          <div class="eyebrow">03 / MOVE FORWARD</div>
+          <h2 id="brief-title">Your discovery brief.</h2>
+        </div>
+        <button
+          class="icon-button"
+          data-action="close-dialog"
+          aria-label="Close discovery brief"
+        >
+          <span data-icon="close"></span>
+        </button>
+      </div>
+      <p class="muted">Review and edit before sharing with your team.</p>
+      <label class="brief-label" for="brief-editor">Brief content</label
+      ><textarea id="brief-editor" spellcheck="true"></textarea>
+      <div class="dialog-actions">
+        <span class="muted">Draft · ready for your review</span
+        ><button class="button secondary" data-action="copy-brief">
+          <span data-icon="copy"></span>Copy brief</button
+        ><button class="button primary" data-action="download-brief">
+          <span data-icon="download"></span>Download
+        </button>
+      </div>
+    </dialog>
+    <dialog id="help-dialog" class="help-dialog" aria-labelledby="help-title">
+      <div class="dialog-top">
+        <h2 id="help-title">One need. A clearer next step.</h2>
+        <button
+          class="icon-button"
+          data-action="close-dialog"
+          aria-label="Close workspace help"
+        >
+          <span data-icon="close"></span>
+        </button>
+      </div>
+      <p>
+        EDGE Beacon is the one place Cisco practice teams find customers,
+        courses, add-ons, labs, solutions and program answers.
+      </p>
+      <ol>
+        <li>
+          <strong>Browse turnkey deliverables.</strong> Start with a general
+          capability and the outcome it creates.
+        </li>
+        <li>
+          <strong>Search the use-case atlas.</strong> Filter hundreds of
+          starting points across Cisco product lines, LiveKit agent patterns,
+          and verticals.
+        </li>
+        <li>
+          <strong>Describe a need.</strong> Get a guided fit, discovery
+          questions, and a brief you can edit.
+        </li>
+      </ol>
+      <p>
+        The Partner and Internal sales controls change the questions and
+        explanations. They are workspace perspectives, not account permissions.
+      </p>
+      <p>
+        Your draft and shortlist are saved only in this browser. AI analysis
+        runs only when the workspace has an active connection; otherwise results
+        are explicitly labeled as guided catalog matching.
+      </p>
+      <p>
+        Catalog content and planning estimates require validation with the
+        solutions team. Creating a brief does not submit a request.
+      </p>
+      <button type="button" class="text-button" data-action="clear-local">
+        Clear this browser’s saved draft and shortlist
+      </button>
+    </dialog>
+
+    <!-- Slide-Over Context Pane -->
+    <div class="context-backdrop" id="context-backdrop"></div>
+    <aside
+      class="context-pane"
+      id="context-pane"
+      aria-hidden="true"
+      aria-labelledby="context-pane-title"
+    >
+      <header class="context-pane-header">
+        <h3 id="context-pane-title">Record Details</h3>
+        <button
+          class="icon-button"
+          id="context-pane-close"
+          aria-label="Close pane"
+        >
+          <span data-icon="close"></span>
+        </button>
+      </header>
+      <div class="context-pane-body" id="context-pane-body"></div>
+      <div class="context-pane-footer" id="context-pane-footer" hidden></div>
+    </aside>
+
+    <!-- Atlas Bar (Cmd+K) Command Palette -->
+    <dialog class="atlas-dialog" id="atlas-dialog" aria-label="Beacon search">
+      <div class="atlas-palette">
+        <div class="atlas-palette-top">
+          <span style="color: var(--tds-action)" data-icon="search"></span>
+          <input
+            type="search"
+            class="atlas-palette-input"
+            id="atlas-palette-input"
+            placeholder="Search solutions, courses, customers, or ask Cisco 360..."
+            autocomplete="off"
+          />
+          <button
+            class="icon-button"
+            id="atlas-palette-close"
+            aria-label="Close command palette"
+          >
+            <span data-icon="close"></span>
+          </button>
+        </div>
+        <div class="atlas-palette-tabs">
+          <button type="button" class="atlas-tab-btn active" data-tab="all">
+            All
+          </button>
+          <button type="button" class="atlas-tab-btn" data-tab="search">
+            Search Records
+          </button>
+          <button type="button" class="atlas-tab-btn" data-tab="jump">
+            Jump to
+          </button>
+          <button type="button" class="atlas-tab-btn" data-tab="actions">
+            Actions
+          </button>
+          <button type="button" class="atlas-tab-btn" data-tab="ask">
+            Ask Beacon (Citations)
+          </button>
+        </div>
+        <div
+          class="atlas-results-list"
+          id="atlas-results-list"
+          role="listbox"
+        ></div>
+        <div class="atlas-palette-footer">
+          <span
+            ><kbd>↑</kbd> <kbd>↓</kbd> navigate · <kbd>↵</kbd> select ·
+            <kbd>esc</kbd> close</span
+          >
+          <span>TD SYNNEX EDGE Beacon · ranked by Jev</span>
+        </div>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" hidden></div>
+    <noscript
+      ><p class="noscript">
+        Enable JavaScript to use solution discovery, comparison, and brief
+        creation.
+      </p></noscript
+    >
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

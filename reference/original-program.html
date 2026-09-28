@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cisco AI Partner Accelerator — TD SYNNEX</title>
+<meta name="description" content="TD SYNNEX AI enablement for Cisco partners: assessments, turnkey kits, hands-on labs, webinars, day camps, accelerator days, and an on-demand library. 25 partners by November 10, 2026.">
+<style>
+  :root{
+    --ink:#003031; --teal:#005758; --jade:#2D9F88; --cyan:#08BED5; --lime:#CCD814;
+    --bg:#FFFFF6; --paper:#FFFFFF; --mist:#F0F0F0; --line:#D9D8D7; --line-soft:#E2E7E4;
+    --text:#003031; --text-2:#466263; --text-3:#698687;
+    --ok:#176450; --warn:#765609; --danger:#B42318; --info:#1D3152;
+    --tint:#EAF5EF; --tint-2:#E4F0ED;
+    --font:Arial, Helvetica, sans-serif;
+    --w:1180px; --gutter:24px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 var(--font);-webkit-font-smoothing:antialiased}
+  a{color:var(--teal)}
+  h1,h2,h3,h4{margin:0;font-weight:700;letter-spacing:-.01em;line-height:1.15}
+  h1{font-size:clamp(38px,5.2vw,60px);letter-spacing:-.025em}
+  h2{font-size:clamp(26px,3vw,34px)}
+  h3{font-size:19px}
+  p{margin:0}
+  .wrap{max-width:var(--w);margin:0 auto;padding:0 var(--gutter)}
+  .muted{color:var(--text-2)}
+  .small{font-size:13px;color:var(--text-3)}
+  :focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+
+  /* ---------- header ---------- */
+  header{position:sticky;top:0;z-index:20;background:rgba(255,255,246,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;gap:28px;height:64px}
+  .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink);font-weight:700;font-size:15px;letter-spacing:.02em}
+  .brand .mark{width:34px;height:34px;background:var(--ink);color:var(--lime);display:grid;place-items:center;font-size:11px;font-weight:700;border-radius:4px}
+  .brand .sep{color:var(--line);font-weight:400}
+  .nav nav{margin-left:auto;display:flex;gap:22px}
+  .nav nav a{color:var(--text-2);text-decoration:none;font-size:14px}
+  .nav nav a:hover{color:var(--ink)}
+  .btn{display:inline-flex;align-items:center;gap:8px;background:var(--teal);color:#fff;text-decoration:none;font-weight:700;padding:11px 18px;border-radius:4px;border:0;font:inherit;font-weight:700;cursor:pointer}
+  .btn:hover{background:var(--ink)}
+  .btn.ghost{background:transparent;color:var(--teal);border:1.5px solid var(--teal)}
+  .btn.ghost:hover{background:var(--tint)}
+  @media (max-width:860px){.nav nav{display:none}}
+
+  /* ---------- hero ---------- */
+  .hero{padding:72px 0 56px;border-bottom:1px solid var(--line)}
+  .hero .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:end}
+  .hero p.lead{font-size:19px;color:var(--text-2);max-width:56ch;margin-top:20px}
+  .hero .cta{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}
+  .ladder{border:1px solid var(--line);background:var(--paper);padding:22px 22px 18px;border-radius:6px}
+  .ladder .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+  .ladder .num{font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1}
+  .ladder .num span{font-size:20px;color:var(--text-3);font-weight:400;letter-spacing:0}
+  .tiles{display:grid;grid-template-columns:repeat(25,1fr);gap:4px;height:44px}
+  .tiles i{display:block;background:var(--mist);border-radius:2px;transform-origin:bottom;transform:scaleY(.35);opacity:.8}
+  .tiles i.on{background:var(--lime);transform:scaleY(1);opacity:1}
+  .tiles i.build{background:var(--jade)}
+  .tiles i.scale{background:var(--ink)}
+  @media (prefers-reduced-motion:no-preference){
+    .tiles i{transition:transform .5s cubic-bezier(.2,.7,.2,1),background-color .4s}
+  }
+  .legend{display:flex;gap:18px;margin-top:12px;font-size:13px;color:var(--text-2)}
+  .legend b{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+  .deadline{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);display:flex;justify-content:space-between;font-size:13px;color:var(--text-2)}
+  @media (max-width:860px){.hero .grid{grid-template-columns:1fr;gap:32px}}
+
+  /* ---------- sections ---------- */
+  section{padding:64px 0;border-bottom:1px solid var(--line)}
+  .sec-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:32px;margin-bottom:34px;align-items:start}
+  .sec-head p{color:var(--text-2);font-size:16px;max-width:64ch}
+  @media (max-width:860px){.sec-head{grid-template-columns:1fr;gap:12px}}
+
+  /* tiers */
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--paper)}
+  .tier{padding:26px 24px;border-right:1px solid var(--line)}
+  .tier:last-child{border-right:0}
+  .tier .who{color:var(--text-2);margin:8px 0 16px;min-height:44px}
+  .tier ul{margin:0;padding:0;list-style:none}
+  .tier li{padding:9px 0;border-top:1px solid var(--line-soft);display:flex;justify-content:space-between;gap:12px}
+  .tier li span{color:var(--text-3);white-space:nowrap;font-size:13px}
+  .tier .bar{height:6px;border-radius:3px;margin-bottom:14px}
+  .t1 .bar{background:var(--lime)} .t2 .bar{background:var(--jade)} .t3 .bar{background:var(--ink)}
+  @media (max-width:860px){.tiers{grid-template-columns:1fr}.tier{border-right:0;border-bottom:1px solid var(--line)}}
+
+  /* engagements */
+  .engage{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .engage > div{background:var(--paper);padding:22px}
+  .engage h3{font-size:17px}
+  .engage .cad{color:var(--teal);font-weight:700;font-size:13px;margin-top:6px}
+  .engage p{margin-top:10px;color:var(--text-2);font-size:14px}
+  .engage .next{margin-top:14px;font-size:13px;color:var(--text-3);border-top:1px solid var(--line-soft);padding-top:10px}
+  @media (max-width:1000px){.engage{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:560px){.engage{grid-template-columns:1fr}}
+
+  /* VOD */
+  .vod{display:grid;grid-template-columns:280px 1fr;gap:32px;align-items:start}
+  .vod .total{background:var(--ink);color:#fff;padding:26px 24px;border-radius:6px}
+  .vod .total .n{font-size:64px;font-weight:700;letter-spacing:-.04em;line-height:1;color:var(--lime)}
+  .vod .total p{color:#B9D4D0;margin-top:10px;font-size:14px}
+  .vod table{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .vod th,.vod td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line-soft);font-size:14px}
+  .vod th{color:var(--text-3);font-weight:400;font-size:13px;background:var(--mist)}
+  .vod td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+  .vod tr:last-child td{border-bottom:0}
+  .prog{height:6px;background:var(--mist);border-radius:3px;overflow:hidden;min-width:90px}
+  .prog i{display:block;height:100%;background:var(--jade)}
+  @media (max-width:860px){.vod{grid-template-columns:1fr}}
+
+  /* kits */
+  .toggle{display:inline-flex;border:1px solid var(--teal);border-radius:4px;overflow:hidden}
+  .toggle button{background:transparent;border:0;padding:9px 16px;font:inherit;font-weight:700;color:var(--teal);cursor:pointer}
+  .toggle button[aria-pressed="true"]{background:var(--teal);color:#fff}
+  .kits{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .kits th,.kits td{padding:12px 14px;border-bottom:1px solid var(--line-soft);text-align:left;vertical-align:top;font-size:14px}
+  .kits th{background:var(--mist);color:var(--text-3);font-weight:400;font-size:13px}
+  .kits td.cost{white-space:nowrap;font-variant-numeric:tabular-nums}
+  .kits td .what{color:var(--text-2);display:block;margin-top:3px;font-size:13px}
+  .kits tr:last-child td{border-bottom:0}
+  .pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--tint);color:var(--ok);font-weight:700}
+  .pill.ref{background:var(--mist);color:var(--text-2)}
+  .stack{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .stack span{font-size:12px;border:1px solid var(--line);border-radius:3px;padding:1px 7px;color:var(--text-2);background:var(--bg)}
+  .note{margin-top:14px;font-size:13px;color:var(--text-3);max-width:80ch}
+  @media (max-width:860px){.kits thead{display:none}.kits td{display:block;border-bottom:0}.kits tr{display:block;border-bottom:1px solid var(--line)}.kits td.cost::before{content:attr(data-l) " ";color:var(--text-3)}}
+
+  /* tracks */
+  .tracks{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+  .track{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:22px 24px}
+  .track h3{display:flex;justify-content:space-between;align-items:baseline}
+  .track h3 small{font-size:13px;color:var(--text-3);font-weight:400}
+  .layers{margin-top:14px;display:grid;grid-template-columns:76px 1fr;row-gap:8px;column-gap:14px;font-size:14px}
+  .layers b{color:var(--teal);font-weight:700}
+  .layers span{color:var(--text-2)}
+  @media (max-width:860px){.tracks{grid-template-columns:1fr}}
+
+  /* literacy */
+  .lit{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+  .lit ol{margin:0;padding:0;list-style:none;counter-reset:m}
+  .lit li{counter-increment:m;display:grid;grid-template-columns:34px 1fr auto;gap:12px;padding:10px 0;border-top:1px solid var(--line-soft);align-items:baseline}
+  .lit li::before{content:counter(m,decimal-leading-zero);color:var(--text-3);font-size:13px;font-variant-numeric:tabular-nums}
+  .lit li .who{font-size:12px;color:var(--text-3);white-space:nowrap}
+  .rules{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:22px 24px}
+  .rules h3{margin-bottom:12px}
+  .rules table{width:100%;border-collapse:collapse;font-size:14px}
+  .rules td{padding:8px 0;border-top:1px solid var(--line-soft);vertical-align:top}
+  .rules td:first-child{width:38%;color:var(--text-2)}
+  .rules .never{margin-top:16px;padding:12px 14px;border-left:3px solid var(--danger);background:#FFF0ED;font-size:14px}
+  .rules .always{margin-top:8px;padding:12px 14px;border-left:3px solid var(--ok);background:var(--tint);font-size:14px}
+  @media (max-width:860px){.lit{grid-template-columns:1fr}}
+
+  /* finder */
+  .finder{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start}
+  .q{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:24px}
+  .q fieldset{border:0;padding:0;margin:0 0 18px}
+  .q legend{font-weight:700;margin-bottom:8px;padding:0}
+  .q label{display:inline-flex;align-items:center;gap:8px;margin:0 14px 8px 0;font-size:14px;cursor:pointer}
+  .q input{accent-color:var(--teal)}
+  .result{background:var(--ink);color:#fff;border-radius:6px;padding:26px 24px;min-height:220px}
+  .result h3{color:var(--lime);font-size:22px}
+  .result p{color:#B9D4D0;margin-top:10px}
+  .result ul{margin:14px 0 0;padding-left:18px;color:#fff}
+  .result li{margin:6px 0}
+  .result .empty{color:#B9D4D0}
+  @media (max-width:860px){.finder{grid-template-columns:1fr}}
+
+  /* hub */
+  .hub{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .hub > div{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:22px 24px}
+  .hub .role{color:var(--teal);font-weight:700;font-size:13px}
+  .hub h3{margin-top:6px}
+  .hub ul{margin:12px 0 0;padding-left:18px;color:var(--text-2);font-size:14px}
+  .hub li{margin:5px 0}
+  .phases{margin-top:28px;display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .phases div{background:var(--paper);padding:16px 18px;font-size:13px}
+  .phases b{display:block;color:var(--ink);font-size:14px;margin-bottom:4px}
+  .phases span{color:var(--text-3)}
+  @media (max-width:1000px){.hub{grid-template-columns:1fr}.phases{grid-template-columns:1fr}}
+
+  /* footer */
+  footer{padding:40px 0 48px;color:var(--text-3);font-size:13px}
+  footer .row{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top"><span class="mark">TDS</span>TD SYNNEX <span class="sep">/</span> Cisco AI Partner Accelerator</a>
+    <nav aria-label="Sections">
+      <a href="#ladder">Program</a>
+      <a href="#engage">Engagements</a>
+      <a href="#vod">On-demand</a>
+      <a href="#kits">Kits</a>
+      <a href="#tracks">Learning</a>
+      <a href="#finder">Find your fit</a>
+    </nav>
+    <a class="btn" href="#finder">Start assessment</a>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ================= HERO ================= -->
+<section class="hero" aria-labelledby="h1">
+  <div class="wrap grid">
+    <div>
+      <h1 id="h1">AI enablement for Cisco partners, built and delivered by TD SYNNEX engineers.</h1>
+      <p class="lead">Assess where you are, deploy a working kit in an hour, train your sales and technical teams, and earn Cisco 360 AI specializations with the people who built the labs.</p>
+      <div class="cta">
+        <a class="btn" href="#finder">Find your tier in 90 seconds</a>
+        <a class="btn ghost" href="#engage">See this month's sessions</a>
+      </div>
+    </div>
+    <div class="ladder" aria-label="Partner enrollment progress">
+      <div class="head">
+        <div class="num"><span id="enrolled" style="font-size:44px;color:var(--ink);font-weight:700;letter-spacing:-.03em">0</span> <span>of 25 partners enrolled</span></div>
+      </div>
+      <div class="tiles" id="tiles" aria-hidden="true"></div>
+      <div class="legend">
+        <span><b style="background:var(--lime)"></b>Explore</span>
+        <span><b style="background:var(--jade)"></b>Build</span>
+        <span><b style="background:var(--ink)"></b>Scale</span>
+        <span><b style="background:var(--mist)"></b>Open seat</span>
+      </div>
+      <div class="deadline"><span>Cohort target</span><span><b>November 10, 2026</b></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PROGRAM LADDER ================= -->
+<section id="ladder" aria-labelledby="h-ladder">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 id="h-ladder">Three tiers. One front door.</h2>
+      <p>Pick the tier that describes your practice today. Every offer lists its duration, what you leave with, and which Cisco 360 metric it moves — Partner Value Index, a specialization, or a Cisco Partner Incentive bonus.</p>
+    </div>
+    <div class="tiers">
+      <div class="tier t1">
+        <div class="bar"></div>
+        <h3>Explore</h3>
+        <p class="who">Transactional resellers with no AI practice yet. Goal: close the first AI-attached deal.</p>
+        <ul>
+          <li>AI Readiness Assessment <span>1 hr</span></li>
+          <li>PVI 360 Performance Advisor <span>self-serve</span></li>
+          <li>Partner Knowledge Bot on Cisco 360 docs <span>24/7</span></li>
+          <li>Three sales plays with demo clips <span>1 hr each</span></li>
+          <li>SalesDojo for your reps <span>3.5 hr</span></li>
+        </ul>
+      </div>
+      <div class="tier t2">
+        <div class="bar"></div>
+        <h3>Build</h3>
+        <p class="who">One to five engineers, building a practice. Goal: earn Secure AI Infrastructure or Secure Networking and run a POC.</p>
+        <ul>
+          <li>Specialization Sprint cohort <span>8 wk</span></li>
+          <li>NetDojo labs on private CML instances <span>self-paced</span></li>
+          <li>Turnkey kit deployment, cloud or on-prem <span>1 day</span></li>
+          <li>Weekly office hours with the SA team <span>Thu</span></li>
+          <li>Day Training Camp <span>1 day</span></li>
+        </ul>
+      </div>
+      <div class="tier t3">
+        <div class="bar"></div>
+        <h3>Scale</h3>
+        <p class="who">Gold and specialized partners building MSP or agentic offers. Goal: repeatable customer offers and co-sell.</p>
+        <ul>
+          <li>Accelerator Day on-site with your team <span>1 day</span></li>
+          <li>Co-delivered customer POCs <span>2–4 wk</span></li>
+          <li>White-label NetDojo academy <span>ongoing</span></li>
+          <li>Private / hybrid AI reference architecture <span>1 wk</span></li>
+          <li>Joint executive workshops for your customers <span>half day</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ENGAGEMENTS ================= -->
+<section id="engage" aria-labelledby="h-engage">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 id="h-engage">How we meet you</h2>
+      <p>Eight formats, from a 60-minute webinar to a full day on-site. Everything live is recorded into the on-demand library within 48 hours.</p>
+    </div>
+    <div class="engage">
+      <div>
+        <h3>Webinars</h3>
+        <div class="cad">Twice per cohort · 60 min</div>
+        <p>AI Ready in 60 Minutes: Cisco 360 + the TD SYNNEX Accelerator. Ends with the assessment link.</p>
+        <div class="next">Next: Wed Sep 23 and Wed Oct 14, 2026</div>
+      </div>
+      <div>
+        <h3>Weekly office hours</h3>
+        <div class="cad">Every Thursday · 60 min</div>
+        <p>Bring a deal, a lab, or a broken kit. Ruben and Tanishq on the call. Build and Scale partners get priority.</p>
+        <div class="next">Starts Thu Sep 17, 2026 · Webex</div>
+      </div>
+      <div>
+        <h3>Day Training Camps</h3>
+        <div class="cad">Monthly · 1 day · virtual or Denver</div>
+        <p>One domain per camp. Morning is architecture and demo, afternoon is hands-on in NetDojo/CML. Leave with a deployed kit.</p>
+        <div class="next">Oct: Network Automation · Nov: Security AI</div>
+      </div>
+      <div>
+        <h3>Accelerator Days</h3>
+        <div class="cad">On request · 1 day on-site</div>
+        <p>We spend the day at your office with your SEs and sellers: assessment, plan, first kit deployed, first customer play drafted.</p>
+        <div class="next">Two per month · Scale tier and Sprint graduates</div>
+      </div>
+      <div>
+        <h3>Cisco Connect events</h3>
+        <div class="cad">Regional · with Cisco</div>
+        <p>Live kit demos at the TD SYNNEX booth and a partner breakout on AI-ready infrastructure. Book a 20-minute slot with an SA.</p>
+        <div class="next">Dates announced per region</div>
+      </div>
+      <div>
+        <h3>Webex community</h3>
+        <div class="cad">Always on</div>
+        <p>One Webex space per cohort plus an all-partner space. Kit release notes, lab announcements, questions answered same day.</p>
+        <div class="next">Invite arrives with enrollment</div>
+      </div>
+      <div>
+        <h3>Compliance clinics</h3>
+        <div class="cad">Monthly · 90 min</div>
+        <p>Cisco 360 program compliance, specialization audits, AI data handling, Cisco AI Defense guardrails, and HIPAA / CJIS / FedRAMP-aware deployment patterns.</p>
+        <div class="next">First clinic: Oct 2026</div>
+      </div>
+      <div>
+        <h3>Specialization Sprint</h3>
+        <div class="cad">8 weeks · cohort of 5–8</div>
+        <p>Guided path to Secure AI Infrastructure or Secure Networking, tracked weekly against your PVI.</p>
+        <div class="next">Cohort A: Oct 5 · Cohort B: Oct 26, 2026</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ON-DEMAND ================= -->
+<section id="vod" aria-labelledby="h-vod">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 id="h-vod">On-demand library</h2>
+      <p>Every live session becomes a video. Counts below are the catalog as of launch and update as sessions are recorded. Available inside the Accelerator Hub and the partner Webex space.</p>
+    </div>
+    <div class="vod">
+      <div class="total">
+        <div class="n" id="vodTotal">0</div>
+        <p>videos on demand across <span id="vodTracks">0</span> tracks</p>
+        <p class="small" style="color:#698687;margin-top:16px">Target for Nov 10: <b style="color:#fff" id="vodTarget">0</b></p>
+      </div>
+      <table id="vodTable" aria-label="On-demand video counts by track">
+        <thead><tr><th>Track</th><th>Available</th><th>Target</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ================= KITS ================= -->
+<section id="kits" aria-labelledby="h-kits">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 id="h-kits">Turnkey kits</h2>
+      <div>
+        <p>Each kit is a repo with Terraform for cloud, Ansible for on-prem, an MCP server, agent skills, a white-label config, and a 20-minute demo script. One command deploys it. Secrets come from your vault, never from the repo.</p>
+        <div style="margin-top:16px" class="toggle" role="group" aria-label="Cost view">
+          <button type="button" data-view="cloud" aria-pressed="true">Cloud / month</button>
+          <button type="button" data-view="onprem" aria-pressed="false">On-prem</button>
+        </div>
+      </div>
+    </div>
+    <table class="kits" id="kitTable">
+      <thead><tr><th>Kit</th><th>Ships with</th><th>Pilot</th><th>Production</th><th>White label</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="note">Run-cost estimates for infrastructure only. Excludes Cisco licensing, partner labor, and TD SYNNEX services. Token spend is the swing factor in every row. On-prem assumes one shared GPU inference host that all kits point at; after that, marginal cost per kit is a VM and power.</p>
+  </div>
+</section>
+
+<!-- ================= LEARNING TRACKS ================= -->
+<section id="tracks" aria-labelledby="h-tracks">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 id="h-tracks">Learning tracks</h2>
+      <p>Every track has three layers so a seller, an SE, and a builder each get what they need. Sales is one hour with a story and a demo. SE is four to eight hours with a lab. Builder is two to five days and ends with a kit in production.</p>
+    </div>
+    <div class="tracks">
+      <div class="track"><h3>Network Automation <small>Meraki · Catalyst Center · NSO</small></h3>
+        <div class="layers"><b>Sales</b><span>Why automation is now an AI conversation</span><b>SE</b><span>REST, NETCONF, Ansible and Terraform for network; API labs in NetDojo</span><b>Builder</b><span>Deploy Meraki and NSO kits; write a custom MCP tool; agent with approval gate</span></div></div>
+      <div class="track"><h3>Webex Bots &amp; Agents <small>Webex APIs · Webex Calling</small></h3>
+        <div class="layers"><b>Sales</b><span>Summaries, approvals, helpdesk, after-hours coverage</span><b>SE</b><span>Bot framework, webhooks, Webex AI Agent, voice via Calling</span><b>Builder</b><span>Webex Bot Kit plus LiveKit agent connected to your ticketing</span></div></div>
+      <div class="track"><h3>Splunk Integration + AI <small>ES · O11y · MLTK</small></h3>
+        <div class="layers"><b>Sales</b><span>Splunk as the data layer under every AI play</span><b>SE</b><span>Ingestion, SPL, Splunk AI Assistant, MLTK, Talos and XDR integrations</span><b>Builder</b><span>Natural-language-to-SPL agent; alert triage with runbook actions</span></div></div>
+      <div class="track"><h3>Security AI <small>XDR · Secure Access · ISE · AI Defense</small></h3>
+        <div class="layers"><b>Sales</b><span>AI for the SOC, and security for AI</span><b>SE</b><span>Alert correlation, threat modeling for LLM apps, guardrails</span><b>Builder</b><span>Security AI Ops Kit; guardrail policy as code; red-team a partner agent</span></div></div>
+      <div class="track"><h3>Data Center AI <small>UCS · Nexus · Intersight · NVIDIA</small></h3>
+        <div class="layers"><b>Sales</b><span>AI-ready infrastructure and the Secure AI Infrastructure path</span><b>SE</b><span>AI POD architectures, GPU sizing, telemetry, storage and network for inference</span><b>Builder</b><span>Data Center AI Kit; stand up a private inference hub</span></div></div>
+      <div class="track"><h3>Private &amp; Hybrid AI <small>vLLM · LiteLLM · pgvector</small></h3>
+        <div class="layers"><b>Sales</b><span>Public vs private in one slide; when customers must go private</span><b>SE</b><span>Local inference, model routing, cost model</span><b>Builder</b><span>Private AI Starter end to end; point three kits at it</span></div></div>
+      <div class="track"><h3>Verticals <small>two plays each</small></h3>
+        <div class="layers"><b>Health</b><span>After-hours voice agent; HIPAA-safe knowledge bot on-prem</span><b>SLED</b><span>Records and RFP knowledge bot; change-approved network automation</span><b>Mfg / Retail</b><span>OT-aware Meraki ops; store-network health agent; Splunk anomaly triage</span><b>FinServ / Edu</b><span>SOC triage and private AI hub; campus refresh plus white-label academy</span></div></div>
+      <div class="track"><h3>SalesDojo <small>internal sellers · 3.5 hr</small></h3>
+        <div class="layers"><b>White</b><span>What AI is and isn't; the five things customers buy</span><b>Yellow</b><span>The six Cisco AI plays with a demo clip each</span><b>Orange</b><span>Twelve discovery questions; when to bring an SA</span><b>Green</b><span>Objections: cost, hallucination, data leakage, "not ready"</span><b>Blue</b><span>Scored scenario drills; leaderboard</span><b>Black</b><span>Bring a live deal to office hours; co-sell</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= AI LITERACY ================= -->
+<section id="literacy" aria-labelledby="h-lit">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 id="h-lit">AI literacy, for everyone who touches a deal</h2>
+      <p>Twelve modules from fundamentals to shipping. Sellers take five, SEs take nine, builders take all twelve. The two rule cards on the right are the ones we ask every partner to put on the wall.</p>
+    </div>
+    <div class="lit">
+      <ol>
+        <li><span>LLM fundamentals · tokens, context, hallucination</span><span class="who">everyone · 45 min</span></li>
+        <li><span>Prompt engineering · system prompts, structured output, prompt libraries</span><span class="who">everyone · 60 min</span></li>
+        <li><span>Python for APIs · uv, pyproject.toml, httpx, FastAPI, call a Cisco API</span><span class="who">builder · 1 day</span></li>
+        <li><span>APIs and auth · REST, OAuth, rate limits, webhooks</span><span class="who">SE · 3 hr</span></li>
+        <li><span>MCP tools · install the Cisco servers in your agent client, write one tool</span><span class="who">SE · 4 hr</span></li>
+        <li><span>Skills · SKILL.md pattern, package a runbook as a skill</span><span class="who">SE · 2 hr</span></li>
+        <li><span>Agents and RAG · tool loops, approval gates, pgvector, evaluation</span><span class="who">builder · 1 day</span></li>
+        <li><span>Private vs public AI · consumer app, enterprise API, local</span><span class="who">everyone · 45 min</span></li>
+        <li><span>Model selection · task × sensitivity × cost, routing via LiteLLM</span><span class="who">SE · 60 min</span></li>
+        <li><span>Staying safe with data · what never goes into a public model</span><span class="who">everyone · 45 min</span></li>
+        <li><span>AI security · prompt injection, tool abuse, Cisco AI Defense</span><span class="who">SE · 3 hr</span></li>
+        <li><span>Shipping and operating · Terraform/Ansible deploy, logging, cost</span><span class="who">builder · 4 hr</span></li>
+      </ol>
+      <div class="rules">
+        <h3>Which model, and where it runs</h3>
+        <table>
+          <tr><td>Drafting, summaries, sales content</td><td>Frontier API through an enterprise tier</td></tr>
+          <tr><td>Code and agents</td><td>Frontier API with tool use; Claude Code for repos</td></tr>
+          <tr><td>Config generation with approval</td><td>Enterprise API behind LiteLLM with redaction, or a local 30–70B model</td></tr>
+          <tr><td>PHI, PII, CJIS, ITAR</td><td>Local model on the Private AI Starter, or a zero-retention API inside the customer's own cloud tenancy</td></tr>
+          <tr><td>High-volume classification</td><td>Small local model, 7–14B</td></tr>
+        </table>
+        <div class="never">Never: customer data in consumer chat apps, credentials in prompts, exports uploaded to unvetted SaaS.</div>
+        <div class="always">Always: secrets from 1Password or VAULT, redact before prompting, log prompts and tool calls, human approval on write actions.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FINDER ================= -->
+<section id="finder" aria-labelledby="h-finder">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 id="h-finder">Find your fit</h2>
+      <p>Six questions. You get a tier, the first three things to do, and the kit that fits. Sellers use this in front of customers too.</p>
+    </div>
+    <div class="finder">
+      <form class="q" id="finderForm">
+        <fieldset><legend>Engineers who can write a script</legend>
+          <label><input type="radio" name="eng" value="0" checked> None</label>
+          <label><input type="radio" name="eng" value="1"> 1–5</label>
+          <label><input type="radio" name="eng" value="2"> 6+</label>
+        </fieldset>
+        <fieldset><legend>Cisco specializations held</legend>
+          <label><input type="radio" name="spec" value="0" checked> None</label>
+          <label><input type="radio" name="spec" value="1"> One or two</label>
+          <label><input type="radio" name="spec" value="2"> Gold / multiple</label>
+        </fieldset>
+        <fieldset><legend>AI deals in your pipeline today</legend>
+          <label><input type="radio" name="pipe" value="0" checked> None</label>
+          <label><input type="radio" name="pipe" value="1"> A few</label>
+          <label><input type="radio" name="pipe" value="2"> It's a practice</label>
+        </fieldset>
+        <fieldset><legend>Largest Cisco footprint</legend>
+          <label><input type="radio" name="foot" value="net" checked> Meraki / Catalyst</label>
+          <label><input type="radio" name="foot" value="sec"> Security / Splunk</label>
+          <label><input type="radio" name="foot" value="dc"> UCS / Nexus</label>
+          <label><input type="radio" name="foot" value="collab"> Webex</label>
+        </fieldset>
+        <fieldset><legend>Customer data sensitivity</legend>
+          <label><input type="radio" name="sens" value="low" checked> Mostly commercial</label>
+          <label><input type="radio" name="sens" value="high"> Regulated (health, gov, finance)</label>
+        </fieldset>
+        <fieldset><legend>Cloud stance</legend>
+          <label><input type="radio" name="cloud" value="cloud" checked> Cloud-first</label>
+          <label><input type="radio" name="cloud" value="onprem"> On-prem or hybrid</label>
+        </fieldset>
+        <button class="btn" type="submit">Show my plan</button>
+      </form>
+      <div class="result" id="result" aria-live="polite">
+        <h3>Your plan appears here</h3>
+        <p class="empty">Answer the six questions and choose "Show my plan".</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HUB ================= -->
+<section id="hub" aria-labelledby="h-hub">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2 id="h-hub">Accelerator Hub</h2>
+      <p>The web application behind this program. Three views, one curriculum, one partner record. Built on the same stack as NetDojo: Next.js, FastAPI, PostgreSQL with pgvector, deployed on AWS.</p>
+    </div>
+    <div class="hub">
+      <div><div class="role">Business Development Executives</div><h3>Where each partner needs help</h3>
+        <ul><li>Partner roster with tier, PVI, specializations, certs, bookings by domain</li><li>Domain gap heatmap, partner × domain</li><li>Recommended next enablement per partner</li><li>Funnel and cohort progress</li></ul></div>
+      <div><div class="role">Partners</div><h3>Build your own accelerator</h3>
+        <ul><li>Add domains à la carte; the plan sequences them and estimates hours</li><li>Launch NetDojo and CML labs, SalesDojo, on-demand videos</li><li>Request a kit deployment with the cost shown first</li><li>Book office hours, camps, and Accelerator Days</li></ul></div>
+      <div><div class="role">Solutions Architects</div><h3>Own the curriculum</h3>
+        <ul><li>Domain → module → lesson editor with labs and quizzes</li><li>Draft and publish workflow with versioning</li><li>Completion and drop-off analytics per lesson</li><li>Kit registry linked to repos and Terraform variables</li></ul></div>
+    </div>
+    <div class="phases">
+      <div><b>Spec</b><span>Sep 14–25</span></div>
+      <div><b>Studio + Partner Portal</b><span>Sep 28 – Oct 23</span></div>
+      <div><b>BDE Analytics</b><span>Oct 26 – Nov 13</span></div>
+      <div><b>Kit deployment automation</b><span>Nov 16 – Dec 11</span></div>
+      <div><b>Hardening</b><span>Dec 14 – Jan 1</span></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap row">
+    <div>© 2026 TD SYNNEX Corporation. TD SYNNEX and the TD SYNNEX logo are trademarks of TD SYNNEX Corporation. Cisco, Meraki, Splunk, and Webex are trademarks of Cisco Systems, Inc.</div>
+    <div>AI Solutions – Cisco · Ruben Dedman and Tanishq Thakkar · Office hours every Thursday</div>
+  </div>
+</footer>
+
+<script>
+/* ---------------- editable program data ---------------- */
+const DATA = {
+  // Enrolled partners: update these three numbers as the cohort fills.
+  enrolled: { explore: 6, build: 3, scale: 1 },
+
+  // On-demand library: available today vs. target for Nov 10, 2026.
+  vod: [
+    ["Program & Cisco 360 basics", 4, 8],
+    ["SalesDojo (sellers)", 6, 12],
+    ["Network Automation", 5, 14],
+    ["Webex Bots & Agents", 2, 8],
+    ["Splunk Integration + AI", 3, 10],
+    ["Security AI", 2, 10],
+    ["Data Center AI", 3, 10],
+    ["Private & Hybrid AI", 4, 8],
+    ["AI literacy modules", 6, 12],
+    ["Kit walkthroughs & deploys", 5, 12],
+    ["Verticals", 0, 6],
+    ["Compliance clinics", 0, 4],
+  ],
+
+  // Kits: name, what, stack, cloud[pilot,prod], onprem[pilot,prod], whiteLabel
+  kits: [
+    ["Meraki AI Ops Dashboard","Natural-language ops over the Meraki API: health, anomalies, config drift, changes with approval",["Terraform","Ansible","MCP","Skills"],["$150–400","$600–1,500"],["Existing VM + shared GPU host","≈$50/mo power"],true],
+    ["NSO AI Dashboard","Intent-to-config, service assurance, rollback assistant over NSO REST/NETCONF",["Terraform","Ansible","MCP","Skills"],["$200–500","$800–2,000"],["Existing VM + shared GPU host","≈$50/mo power"],true],
+    ["Cisco Platform MCP Tools","MCP servers for Meraki, Catalyst Center, NSO, Webex, Splunk, ThousandEyes, Intersight",["MCP","Skills"],["$0–50","$0–50"],["$0 (local process)","$0"],true],
+    ["Partner Knowledge Bot","RAG over your docs, Cisco 360 program docs, SKUs, and runbooks",["Terraform","Ansible","MCP","Skills"],["$100–300","$400–1,200"],["Existing VM + pgvector + GPU host","≈$50/mo"],true],
+    ["LiveKit Voice / Video Agent","AI receptionist, helpdesk, after-hours; Webex Calling or SIP trunk in",["Terraform","Ansible","Skills"],["$150–400","$500–3,000 (minutes)"],["$2–5k media host + telephony","$100–300/mo"],true],
+    ["Webex Bot & Agent Kit","Ticket lookup, on-call paging, meeting summaries, approvals",["Terraform","Ansible","MCP","Skills"],["$50–150","$200–600"],["Existing VM","≈$20/mo"],true],
+    ["Splunk AI Integration Kit","Alert-triage agent, NL-to-SPL, MLTK notebooks, AI Defense hook",["Terraform","Ansible","MCP","Skills"],["$200–500","$800–2,500"],["Existing Splunk + GPU host","≈$50/mo"],true],
+    ["Security AI Ops Kit","XDR + Secure Access + ISE + Splunk correlation; incident briefs; guardrails for LLM apps",["Terraform","Ansible","MCP","Skills"],["$250–600","$1,000–3,000"],["Existing SOC infra + GPU host","≈$50/mo"],true],
+    ["Data Center AI Kit","Intersight/Nexus telemetry agent, GPU sizing, AI POD BOM generator",["Terraform","Ansible","MCP","Skills"],["$150–400","$600–1,500"],["Existing VM","≈$20/mo"],true],
+    ["NetDojo Training Platform","Gamified cert prep + graded CML labs; partner-branded academy",["Terraform","Ansible","Skills"],["$300–800","$1,500–4,000"],["CML on UCS/VM $3–10k + licenses","$100–300/mo"],true],
+    ["SalesDojo","NetDojo engine for sales AI literacy + Solution Finder",["Skills"],["included in NetDojo","included"],["included in NetDojo","included"],true],
+    ["Private AI Starter","vLLM/Ollama + LiteLLM + pgvector; the local inference hub every other kit points at",["Terraform","Ansible"],["n/a","n/a"],["$8–25k single GPU · $25–80k AI POD","$150–600/mo power"],false],
+  ],
+};
+
+/* ---------------- hero ladder ---------------- */
+(function(){
+  const t=document.getElementById('tiles'); const e=DATA.enrolled;
+  const total=e.explore+e.build+e.scale;
+  const cls=[...Array(e.explore).fill('on'),...Array(e.build).fill('on build'),...Array(e.scale).fill('on scale')];
+  for(let i=0;i<25;i++){const b=document.createElement('i'); t.appendChild(b);}
+  const tiles=[...t.children]; document.getElementById('enrolled').textContent=total;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  cls.forEach((c,i)=>{ if(reduce){tiles[i].className=c;} else setTimeout(()=>tiles[i].className=c, 250+i*70); });
+})();
+
+/* ---------------- VOD table ---------------- */
+(function(){
+  const tb=document.querySelector('#vodTable tbody'); let a=0,tg=0;
+  DATA.vod.forEach(([n,av,t])=>{a+=av;tg+=t; const pct=Math.round(av/t*100);
+    tb.insertAdjacentHTML('beforeend',`<tr><td>${n}</td><td class="n">${av}</td><td class="n" style="color:var(--text-3);font-weight:400">${t}</td><td><div class="prog" title="${pct}%"><i style="width:${pct}%"></i></div></td></tr>`);});
+  document.getElementById('vodTotal').textContent=a;
+  document.getElementById('vodTracks').textContent=DATA.vod.length;
+  document.getElementById('vodTarget').textContent=tg;
+})();
+
+/* ---------------- kits table + toggle ---------------- */
+(function(){
+  const tb=document.querySelector('#kitTable tbody'); const btns=document.querySelectorAll('.toggle button');
+  function render(view){
+    tb.innerHTML='';
+    DATA.kits.forEach(([n,w,s,c,o,wl])=>{const cost=view==='cloud'?c:o;
+      tb.insertAdjacentHTML('beforeend',`<tr><td><b>${n}</b><span class="what">${w}</span></td><td><div class="stack">${s.map(x=>`<span>${x}</span>`).join('')}</div></td><td class="cost" data-l="Pilot:">${cost[0]}</td><td class="cost" data-l="Production:">${cost[1]}</td><td>${wl?'<span class="pill">Yes</span>':'<span class="pill ref">Reference arch</span>'}</td></tr>`);});
+  }
+  btns.forEach(b=>b.addEventListener('click',()=>{btns.forEach(x=>x.setAttribute('aria-pressed',x===b)); render(b.dataset.view);}));
+  render('cloud');
+})();
+
+/* ---------------- finder ---------------- */
+(function(){
+  const f=document.getElementById('finderForm'), r=document.getElementById('result');
+  const kitByFoot={net:'Meraki AI Ops Dashboard',sec:'Security AI Ops Kit + Splunk AI Integration Kit',dc:'Data Center AI Kit',collab:'Webex Bot & Agent Kit'};
+  const specByFoot={net:'Secure Networking',sec:'Secure Networking',dc:'Secure AI Infrastructure',collab:'Secure Networking'};
+  f.addEventListener('submit',ev=>{ev.preventDefault(); const v=k=>f.querySelector(`[name=${k}]:checked`).value;
+    const score=+v('eng')+ +v('spec')+ +v('pipe');
+    const tier=score<=1?'Explore':score<=4?'Build':'Scale';
+    const foot=v('foot'), sens=v('sens'), cloud=v('cloud');
+    const host=(sens==='high'||cloud==='onprem')?'on-prem on the Private AI Starter':'cloud via Terraform';
+    const steps={
+      Explore:[`Book the AI Readiness Assessment (1 hr) and run PVI 360 to see your fastest specialization path.`,`Put your sellers through SalesDojo (3.5 hr) and pick the ${foot==='dc'?'AI-ready infrastructure':foot==='sec'?'Security AI':foot==='collab'?'Webex AI':'network automation'} sales play.`,`Watch the ${kitByFoot[foot]} demo on demand and bring one customer to Thursday office hours.`],
+      Build:[`Join the next Specialization Sprint toward ${specByFoot[foot]}.`,`Deploy ${kitByFoot[foot]} ${host} — one day with an SA on the call.`,`Enroll two engineers in NetDojo labs; attend the next Day Training Camp.`],
+      Scale:[`Schedule an Accelerator Day on-site: assessment, plan, ${kitByFoot[foot]} deployed ${host}.`,`Scope a co-delivered customer POC and a white-label NetDojo academy.`,`${sens==='high'?'Run the private / hybrid AI reference architecture with a compliance clinic first.':'Stand up the Private AI Starter so every kit runs at marginal cost.'}`]
+    }[tier];
+    r.innerHTML=`<h3>${tier}</h3><p>${sens==='high'?'Regulated data: default to local models or zero-retention APIs in the customer tenancy.':'Commercial data: enterprise APIs are fine; log everything.'} Target specialization: ${specByFoot[foot]}.</p><ul>${steps.map(s=>`<li>${s}</li>`).join('')}</ul>`;
+    r.scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+})();
+</script>
+</body>
+</html>

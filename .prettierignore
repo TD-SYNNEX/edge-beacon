@@ -1,0 +1,8 @@
+dist
+node_modules
+reference
+public/assets
+package-lock.json
+test-results
+playwright-report
+.openai

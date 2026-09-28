@@ -1,0 +1,58 @@
+/* TD SYNNEX Design System, pilot 0.1.0. Verified September 15, 2026.
+   Source: https://tdsnx-design-system-tanishq-thakkars-projects.vercel.app/tokens */
+:root {
+  --tds-deep-teal: #003031;
+  --tds-teal: #005758;
+  --tds-green: #2d9f88;
+  --tds-aqua: #08bed5;
+  --tds-chartreuse: #ccd814;
+  --tds-white: #ffffff;
+  --tds-cloud-white: #fffff6;
+  --tds-light-grey: #f0f0f0;
+  --tds-cool-grey: #d9d8d7;
+  --tds-text: #003031;
+  --tds-text-secondary: #466263;
+  --tds-surface: #ffffff;
+  --tds-surface-subtle: #f0f0f0;
+  --tds-surface-hover: #eaf3f1;
+  --tds-border: #d9d8d7;
+  --tds-border-strong: #698687;
+  --tds-action: #005758;
+  --tds-action-hover: #003031;
+  --tds-on-action: #ffffff;
+  --tds-focus: #005758;
+  --tds-success: #176450;
+  --tds-success-bg: #eaf5ef;
+  --tds-danger: #b42318;
+  --tds-danger-bg: #fff0ed;
+  --tds-font: Arial, Helvetica, sans-serif;
+  --tds-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  --tds-space-1: 0.25rem;
+  --tds-space-2: 0.5rem;
+  --tds-space-3: 0.75rem;
+  --tds-space-4: 1rem;
+  --tds-space-5: 1.5rem;
+  --tds-space-6: 2rem;
+  --tds-space-7: 3rem;
+  --tds-space-8: 4rem;
+  --tds-radius: 2px;
+  --tds-duration-fast: 0.12s;
+  --tds-duration-moderate: 0.2s;
+  --tds-ease: cubic-bezier(0.2, 0, 0, 1);
+  --tds-shadow: 0 8px 28px #00303114;
+  --header: 72px;
+  --sidebar: 248px;
+  --pane-width: 420px;
+  --atlas-bar-width: 640px;
+
+  /* EDGE Pillar Accents */
+  --edge-engage: #08bed5;
+  --edge-engage-bg: #e6f9fc;
+  --edge-develop: #2d9f88;
+  --edge-develop-bg: #eaf6f3;
+  --edge-grow: #99a30d;
+  --edge-grow-bright: #ccd814;
+  --edge-grow-bg: #f9fae6;
+  --edge-extend: #5046e5;
+  --edge-extend-bg: #eef2ff;
+}
