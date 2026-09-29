@@ -38,6 +38,16 @@ jobs:
       # repo's staging branch and only has permission to assume the CDK
       # bootstrap roles, which already carry least-privilege
       # CloudFormation/S3/ECR permissions on their own.
+      # TEMPORARY debug step: print the real OIDC sub claim to diagnose an
+      # AssumeRoleWithWebIdentity failure. Remove once staging deploys
+      # succeed (see DEPLOYMENT.md troubleshooting for why this is needed
+      # instead of guessing the claim format from docs).
+      - run: |
+          curl -sSL -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" \
+          | node -e "const b=JSON.parse(require('fs').readFileSync(0,'utf8'));
+            console.log(Buffer.from(b.value.split('.')[1],'base64url').toString())"
+
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
