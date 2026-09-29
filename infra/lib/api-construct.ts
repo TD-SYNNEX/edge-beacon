@@ -14,6 +14,8 @@ export interface ApiConstructProps {
   client: cognito.UserPoolClient;
   /** The one distribution SiteConstruct created; this adds a second behavior to it. */
   distribution: cloudfront.Distribution;
+  /** @default "edge-beacon-api" */
+  functionName?: string;
 }
 
 export class ApiConstruct extends Construct {
@@ -41,7 +43,7 @@ export class ApiConstruct extends Construct {
     });
 
     this.fn = new lambda.Function(this, "Function", {
-      functionName: "edge-beacon-api",
+      functionName: props.functionName ?? "edge-beacon-api",
       runtime: lambda.Runtime.NODEJS_22_X,
       architecture: lambda.Architecture.ARM_64,
       handler: "index.handler",

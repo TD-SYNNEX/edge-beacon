@@ -10,29 +10,45 @@ const DOMAIN_NAME = "edgebeaconai.com";
 const GITHUB_ORG = "TD-SYNNEX";
 const GITHUB_REPO = "edge-beacon";
 
-export class EdgeBeaconStack extends Stack {
-  constructor(scope: Construct, id: string, props?: StackProps) {
-    super(scope, id, props);
+export interface EdgeBeaconStackProps extends StackProps {
+  /**
+   * "production" gets the custom domain (edgebeaconai.com) and deploys from
+   * main. "staging" is a full parallel copy of every resource — its own
+   * Cognito pool, Lambda, S3 bucket, CloudFront distribution — reachable
+   * only at its own CloudFront-issued domain, deployed from the "staging"
+   * branch. Nothing here is shared between the two except the AWS account
+   * and the GitHub OIDC provider (see CiConstruct's importExistingOidcProvider).
+   */
+  stage: "production" | "staging";
+}
 
-    // Independent of everything else: the hosted zone + cert don't reference
-    // any other resource here, so there's no ordering constraint on this one.
-    const domain = new DomainConstruct(this, "Domain", {
-      domainName: DOMAIN_NAME,
-    });
+export class EdgeBeaconStack extends Stack {
+  constructor(scope: Construct, id: string, props: EdgeBeaconStackProps) {
+    super(scope, id, props);
+    const isProd = props.stage === "production";
+
+    // Custom domain is production-only: staging is for testing before a
+    // prod push, not for a public-facing URL, so it just uses the
+    // CloudFront-issued domain (SiteConstruct already supports that when
+    // domainNames/certificate/hostedZone are omitted) and skips the
+    // Route 53 zone + ACM cert entirely.
+    const domain = isProd
+      ? new DomainConstruct(this, "Domain", { domainName: DOMAIN_NAME })
+      : undefined;
 
     // Site next: its CloudFront domain (and now the custom domain) feed
     // Auth's callback URLs, and Api adds its /api/* behavior onto the one
     // distribution Site creates.
     const site = new SiteConstruct(this, "Site", {
-      domainNames: domain.domainNames,
-      certificate: domain.certificate,
-      hostedZone: domain.hostedZone,
+      domainNames: domain?.domainNames,
+      certificate: domain?.certificate,
+      hostedZone: domain?.hostedZone,
     });
 
     const auth = new AuthConstruct(this, "Auth", {
       extraCallbackUrls: [
         `https://${site.distribution.distributionDomainName}/`,
-        ...domain.domainNames.map((d) => `https://${d}/`),
+        ...(domain?.domainNames.map((d) => `https://${d}/`) ?? []),
       ],
     });
 
@@ -40,31 +56,41 @@ export class EdgeBeaconStack extends Stack {
       userPool: auth.userPool,
       client: auth.client,
       distribution: site.distribution,
+      functionName: isProd ? "edge-beacon-api" : "edge-beacon-api-staging",
     });
 
-    // GitHub Actions OIDC role for .github/workflows/deploy.yml. Independent
+    // GitHub Actions OIDC role for .github/workflows/deploy*.yml. Independent
     // of the app resources above — only needs the account/region context.
+    // IAM allows only one OIDC provider per issuer URL per account, so only
+    // the production stack (deployed first, and already live) creates it;
+    // staging imports the same provider by its deterministic ARN.
     const ci = new CiConstruct(this, "Ci", {
       githubOrg: GITHUB_ORG,
       githubRepo: GITHUB_REPO,
-      branch: "main",
+      branch: isProd ? "main" : "staging",
+      roleName: isProd
+        ? "edge-beacon-github-deploy"
+        : "edge-beacon-github-deploy-staging",
+      importExistingOidcProvider: !isProd,
     });
 
     new CfnOutput(this, "SiteUrl", {
       value: `https://${site.distribution.distributionDomainName}`,
     });
-    new CfnOutput(this, "CustomDomainUrl", {
-      value: `https://${DOMAIN_NAME}`,
-    });
-    new CfnOutput(this, "DomainNameServers", {
-      // Fn.join, not Array.prototype.join: hostedZoneNameServers is a CDK
-      // "list token" (a CloudFormation GetAtt list attribute), and the
-      // native JS .join() trips CDK's EncodedListTokenInScalarContext
-      // validator — confirmed live, isolated to this exact line.
-      value: Fn.join(", ", domain.hostedZone.hostedZoneNameServers!),
-      description:
-        "Set these 4 as edgebeaconai.com's nameservers at GoDaddy (Domain Settings -> Nameservers -> Custom).",
-    });
+    if (domain) {
+      new CfnOutput(this, "CustomDomainUrl", {
+        value: `https://${DOMAIN_NAME}`,
+      });
+      new CfnOutput(this, "DomainNameServers", {
+        // Fn.join, not Array.prototype.join: hostedZoneNameServers is a CDK
+        // "list token" (a CloudFormation GetAtt list attribute), and the
+        // native JS .join() trips CDK's EncodedListTokenInScalarContext
+        // validator — confirmed live, isolated to this exact line.
+        value: Fn.join(", ", domain.hostedZone.hostedZoneNameServers!),
+        description:
+          "Set these 4 as edgebeaconai.com's nameservers at GoDaddy (Domain Settings -> Nameservers -> Custom).",
+      });
+    }
     new CfnOutput(this, "CognitoHostedUiDomain", {
       value: auth.domain.baseUrl(),
     });
@@ -82,8 +108,7 @@ export class EdgeBeaconStack extends Stack {
     });
     new CfnOutput(this, "GitHubDeployRoleArn", {
       value: ci.deployRoleArn,
-      description:
-        "Set as the AWS_DEPLOY_ROLE_ARN secret in the GitHub repo (Settings -> Secrets and variables -> Actions).",
+      description: `Set as the AWS_DEPLOY_ROLE_ARN secret in the GitHub repo's "${props.stage}" environment (Settings -> Environments).`,
     });
   }
 }

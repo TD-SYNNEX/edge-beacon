@@ -13,22 +13,26 @@ that pipeline actually does.
 ## Architecture at a glance
 
 ```
-GitHub (TD-SYNNEX/edge-beacon, branch main)
-   │  push
-   ▼
-.github/workflows/ci.yml  ──success──▶  .github/workflows/deploy.yml
-   (test, build, e2e)                    (OIDC → AWS, npm run build, cdk deploy)
-                                                    │
-                                                    ▼
-                                    infra/ (AWS CDK, account 655790569185, us-east-1)
-                                                    │
-        ┌───────────────┬───────────────┬──────────┼───────────────┬───────────────┐
-        ▼               ▼               ▼          ▼               ▼               ▼
-   Route 53 zone    ACM cert      S3 + CloudFront  Lambda (API)   Cognito       GitHub OIDC
-   edgebeaconai.com  (us-east-1)  (static frontend) Function URL  user pool +    role (CI/CD
-                                                                    managed login  deploy perms)
-                                                                    branding
+GitHub (TD-SYNNEX/edge-beacon)
+   │ push main                              │ push staging
+   ▼                                        ▼
+ci.yml ──success──▶ deploy.yml       ci.yml ──success──▶ deploy-staging.yml
+  (test/build/e2e)    (env: production)      (test/build/e2e)  (env: staging)
+        │                    │                       │                 │
+        ▼                    ▼                       ▼                 ▼
+  cdk deploy EdgeBeaconStack                    cdk deploy EdgeBeaconStagingStack
+        │                                                │
+        ▼                                                ▼
+  infra/ (AWS CDK, account 655790569185, us-east-1) — one CDK app, two independent stacks
+        │                                                │
+  Route53+ACM+S3+CloudFront+Lambda+Cognito     S3+CloudFront+Lambda+Cognito
+  edgebeaconai.com (custom domain)             <cloudfront-id>.cloudfront.net only
 ```
+
+Production (`main`) and staging (`staging` branch) are two fully separate CDK
+stacks — separate Cognito pool, Lambda, S3 bucket, CloudFront distribution —
+sharing only the AWS account and the GitHub OIDC provider. See "Staging
+environment" below.
 
 - **Frontend**: Vite-built static SPA (`src/`), served from S3 behind CloudFront.
 - **API**: same TypeScript code (`server/`) bundled two ways — as a Cloudflare-Worker-style
@@ -38,8 +42,10 @@ GitHub (TD-SYNNEX/edge-beacon, branch main)
   system), authorization-code + PKCE. Groups (`partner`/`sales`/`practice_leader`/`admin`)
   are the real authorization boundary — see `server/auth.ts`.
 - **Domain**: `edgebeaconai.com` (registered at GoDaddy, DNS delegated to Route 53).
-- **IaC**: everything above is one CDK stack, `infra/lib/edge-beacon-stack.ts`, composed of:
-  `DomainConstruct`, `SiteConstruct`, `AuthConstruct`, `ApiConstruct`, `CiConstruct`.
+- **IaC**: `infra/lib/edge-beacon-stack.ts` is one stack class, instantiated twice by
+  `infra/bin/edge-beacon.ts` — `EdgeBeaconStack` (`stage: "production"`) and
+  `EdgeBeaconStagingStack` (`stage: "staging"`) — composed of: `DomainConstruct`
+  (production only), `SiteConstruct`, `AuthConstruct`, `ApiConstruct`, `CiConstruct`.
 
 ## Prerequisites
 
@@ -60,16 +66,20 @@ GitHub (TD-SYNNEX/edge-beacon, branch main)
    which the CDK app packages as the S3 and Lambda code assets. **Must run before every
    `cdk synth`/`cdk deploy`** — the CDK app reads these built files directly, it does not
    build them itself.
-3. `cd infra && npx cdk deploy --profile <profile> --require-approval never` — creates
-   everything: Route 53 zone, ACM cert (DNS-validated in the same zone), S3+CloudFront,
-   Lambda+Cognito, and the GitHub OIDC deploy role.
+3. `cd infra && npx cdk deploy EdgeBeaconStack --profile <profile> --require-approval never`
+   — creates everything: Route 53 zone, ACM cert (DNS-validated in the same zone),
+   S3+CloudFront, Lambda+Cognito, and the GitHub OIDC deploy role + provider. (The app also
+   defines `EdgeBeaconStagingStack` — see "Staging environment" below; deploy that
+   separately, after this one, since it imports the OIDC provider this one creates.)
 4. **Nameservers**: the deploy prints a `DomainNameServers` output (4 values). Set those
    as `edgebeaconai.com`'s custom nameservers in GoDaddy (Domain Settings → Nameservers →
    Custom). The ACM certificate cannot validate — and the stack deploy will sit waiting —
    until this delegation propagates. No fixed ETA; often minutes, can be longer.
-5. **GitHub secret**: the deploy prints a `GitHubDeployRoleArn` output. Set it:
+5. **GitHub secret**: the deploy prints a `GitHubDeployRoleArn` output. Set it as an
+   **environment-scoped** secret (not repo-level) so production and staging can each
+   have their own role:
    ```sh
-   gh secret set AWS_DEPLOY_ROLE_ARN --repo TD-SYNNEX/edge-beacon --body "<arn>"
+   gh secret set AWS_DEPLOY_ROLE_ARN --env production --repo TD-SYNNEX/edge-beacon --body "<arn>"
    ```
    This is the only credential GitHub Actions needs — no static AWS keys anywhere. The
    role trusts GitHub's OIDC provider, scoped to this exact repo + branch only (see
@@ -119,7 +129,55 @@ Push to `main` (or merge a PR into it) and this happens automatically, no manual
 
 **To deploy right now without waiting for CI** (e.g. testing a local change, or CI is
 broken): run steps 2–3 of "one-time setup" manually. That's the entire manual deploy
-procedure — `npm run build` then `cdk deploy`.
+procedure — `npm run build` then `cdk deploy EdgeBeaconStack`.
+
+## Staging environment
+
+`EdgeBeaconStagingStack` is a full parallel copy of production — its own Cognito user
+pool/client, Lambda, S3 bucket, and CloudFront distribution — for testing changes before
+they reach `main`. It is **not** a subdomain of edgebeaconai.com; it has no custom domain
+at all, deliberately (staging isn't public-facing, so the Route 53/ACM machinery is
+skipped entirely — see `isProd` in `infra/lib/edge-beacon-stack.ts`). It's reachable only
+at its own CloudFront-issued URL (the `SiteUrl` stack output).
+
+**Workflow**: push to the `staging` branch (or merge a PR into it). `ci.yml` runs the same
+test/build/e2e suite it runs for `main`, then `.github/workflows/deploy-staging.yml`
+deploys `EdgeBeaconStagingStack` — same shape as `deploy.yml`, different branch trigger,
+different stack, different GitHub **environment** (`staging` instead of `production`, so
+it resolves its own `AWS_DEPLOY_ROLE_ARN` secret and `VITE_COGNITO_*` variables). `main`
+is untouched by any of this — production only ever deploys from `main`, exactly as before.
+
+**One-time setup already done for this deployment:**
+
+1. `cd infra && npx cdk deploy EdgeBeaconStagingStack --profile <profile> --require-approval never`
+   — must run _after_ `EdgeBeaconStack` exists (production creates the GitHub OIDC
+   provider; staging imports it by ARN rather than re-creating it — IAM allows only one
+   OIDC provider per issuer URL per account, and a second `CreateOpenIDConnectProvider`
+   call for the same URL fails with `EntityAlreadyExists`).
+2. Created the `staging` and `production` GitHub environments (they don't exist until
+   created or until a workflow first references them):
+   ```sh
+   gh api --method PUT repos/TD-SYNNEX/edge-beacon/environments/staging
+   gh api --method PUT repos/TD-SYNNEX/edge-beacon/environments/production
+   ```
+3. Set each environment's own secret/variables from that stack's outputs:
+   ```sh
+   gh secret set AWS_DEPLOY_ROLE_ARN --env staging --repo TD-SYNNEX/edge-beacon --body "<GitHubDeployRoleArn output>"
+   gh variable set VITE_COGNITO_DOMAIN --env staging --repo TD-SYNNEX/edge-beacon --body "<CognitoHostedUiDomain's prefix, e.g. edge-beacon-xxxx>"
+   gh variable set VITE_COGNITO_CLIENT_ID --env staging --repo TD-SYNNEX/edge-beacon --body "<CognitoClientId output>"
+   gh variable set VITE_COGNITO_REGION --env staging --repo TD-SYNNEX/edge-beacon --body "us-east-1"
+   ```
+   The same four names were also mirrored explicitly into the `production` environment
+   (GitHub Actions falls back from environment-scoped to repo-level vars/secrets of the
+   same name automatically, but the existing repo-level ones were copied in explicitly
+   rather than relying on that fallback, so both environments are self-contained).
+4. **Not yet done — do this before relying on AI/Jev features in staging**: the staging
+   stack's `ProviderKeysSecretArn` output is a fresh, empty Secrets Manager secret (see
+   one-time setup step 6 above, applied to the staging ARN instead).
+5. To create the `staging` branch itself (if it doesn't exist yet): `git checkout -b
+staging && git push -u origin staging`. After that, any push to `staging` deploys there;
+   any push to `main` (as always) deploys production. Promote a change by merging
+   `staging` → `main` once it's verified.
 
 ## Verifying a deploy
 

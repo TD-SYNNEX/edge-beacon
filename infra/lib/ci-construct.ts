@@ -7,6 +7,15 @@ export interface CiConstructProps {
   githubRepo: string;
   /** @default "main" */
   branch?: string;
+  /** @default "edge-beacon-github-deploy" */
+  roleName?: string;
+  /**
+   * IAM allows only one OIDC provider per issuer URL per account. The first
+   * CiConstruct deployed (production) creates it; every other one (staging)
+   * must import the same provider by its deterministic ARN instead of
+   * re-creating it, or the deploy fails with EntityAlreadyExists.
+   */
+  importExistingOidcProvider?: boolean;
 }
 
 /**
@@ -34,15 +43,19 @@ export class CiConstruct extends Construct {
     const ORG_ID = "109152567"; // TD-SYNNEX
     const REPO_ID = "1387962932"; // edge-beacon
 
-    const provider = new iam.OidcProviderNative(this, "GitHubOidc", {
-      url: "https://token.actions.githubusercontent.com",
-      clientIds: ["sts.amazonaws.com"],
-    });
+    const account = Stack.of(this).account;
+    const providerArn = `arn:aws:iam::${account}:oidc-provider/token.actions.githubusercontent.com`;
+    if (!props.importExistingOidcProvider) {
+      new iam.OidcProviderNative(this, "GitHubOidc", {
+        url: "https://token.actions.githubusercontent.com",
+        clientIds: ["sts.amazonaws.com"],
+      });
+    }
 
     const role = new iam.Role(this, "DeployRole", {
-      roleName: "edge-beacon-github-deploy",
+      roleName: props.roleName ?? "edge-beacon-github-deploy",
       assumedBy: new iam.FederatedPrincipal(
-        provider.oidcProviderArn,
+        providerArn,
         {
           StringEquals: {
             "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
@@ -58,7 +71,6 @@ export class CiConstruct extends Construct {
     // Only permission this role needs: hop into the CDK bootstrap roles,
     // which already carry the actual (narrow, CDK-managed) deploy
     // permissions. No hand-authored parallel policy set to keep in sync.
-    const account = Stack.of(this).account;
     const region = Stack.of(this).region;
     const qualifier = "hnb659fds"; // CDK's default bootstrap qualifier
     role.addToPolicy(
