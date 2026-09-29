@@ -14,6 +14,16 @@ export interface CiConstructProps {
  * role and run `cdk deploy` with no static AWS keys stored in GitHub. Scoped
  * tightly to one repo + branch — token.actions.githubusercontent.com:sub
  * must match exactly, so a workflow from any other repo/branch is refused.
+ *
+ * The sub claim's exact format was confirmed live by printing a real OIDC
+ * token from this repo's own Actions run, not assumed from GitHub's docs:
+ * this account issues the newer "immutable" subject format, which embeds
+ * numeric owner/repo IDs — `repo:ORG@ORG_ID/REPO@REPO_ID:ref:refs/heads/BRANCH`
+ * — not the classic `repo:ORG/REPO:ref:refs/heads/BRANCH`. The classic format
+ * caused a real `Not authorized to perform sts:AssumeRoleWithWebIdentity`
+ * failure on the first live deploy attempt. These IDs are permanent for the
+ * life of the repo (that's the whole point of the newer format), so they're
+ * safe to hardcode rather than parameterize.
  */
 export class CiConstruct extends Construct {
   readonly deployRoleArn: string;
@@ -21,6 +31,8 @@ export class CiConstruct extends Construct {
   constructor(scope: Construct, id: string, props: CiConstructProps) {
     super(scope, id);
     const branch = props.branch ?? "main";
+    const ORG_ID = "109152567"; // TD-SYNNEX
+    const REPO_ID = "1387962932"; // edge-beacon
 
     const provider = new iam.OidcProviderNative(this, "GitHubOidc", {
       url: "https://token.actions.githubusercontent.com",
@@ -34,9 +46,7 @@ export class CiConstruct extends Construct {
         {
           StringEquals: {
             "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-          },
-          StringLike: {
-            "token.actions.githubusercontent.com:sub": `repo:${props.githubOrg}/${props.githubRepo}:ref:refs/heads/${branch}`,
+            "token.actions.githubusercontent.com:sub": `repo:${props.githubOrg}@${ORG_ID}/${props.githubRepo}@${REPO_ID}:ref:refs/heads/${branch}`,
           },
         },
         "sts:AssumeRoleWithWebIdentity",
