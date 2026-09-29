@@ -28,6 +28,21 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      # TEMP DEBUG: print the OIDC token's sub claim so the IAM trust
+      # policy's condition can be set to match it exactly, rather than
+      # guessed. Remove once the real value is confirmed and the trust
+      # policy is fixed.
+      - name: Debug OIDC token claims
+        run: |
+          curl -sSL -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" \
+          | node -e "
+              const body = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+              const [, payload] = body.value.split('.');
+              const json = Buffer.from(payload, 'base64url').toString('utf8');
+              console.log(json);
+            "
+
       # No static AWS keys: this role only exists to be assumed from this
       # repo's main branch (see the trust policy note below) and only has
       # permission to assume the CDK bootstrap roles, which already carry
