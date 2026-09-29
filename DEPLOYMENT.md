@@ -250,6 +250,32 @@ resume driving deploys itself.
 outage — `aws sts get-caller-identity` is the fastest way to tell. Fix: `aws login
 --profile <profile>` again (opens a browser; needs the human to complete it).
 
+**Live site lost styling and auth after a fully green CI/CD run — HTTP status
+codes all looked fine.**
+Root cause: `VITE_COGNITO_DOMAIN`/`VITE_COGNITO_CLIENT_ID`/`VITE_COGNITO_REGION`
+only existed in a local, gitignored `.env` file, never in the repo or in
+GitHub Actions. `deploy.yml`'s `npm run build` step ran with those vars unset,
+so Vite baked an app bundle where `ensureSignedIn()` (`src/auth.ts`) throws
+"Sign-in is not configured" on load — crashing before any rendering, styling
+included. A prior manual fix (local `.env` + manual `cdk deploy`) looked
+permanent but was silently overwritten by the next automated push. Fix: these
+three values aren't secret (they end up in the public browser bundle either
+way regardless of how they're injected), so they're set as GitHub Actions
+repository **variables**, not secrets:
+
+```sh
+gh variable set VITE_COGNITO_DOMAIN --repo TD-SYNNEX/edge-beacon --body "<user pool domain>"
+gh variable set VITE_COGNITO_CLIENT_ID --repo TD-SYNNEX/edge-beacon --body "<app client id>"
+gh variable set VITE_COGNITO_REGION --repo TD-SYNNEX/edge-beacon --body "<region>"
+```
+
+and passed into the build step's `env:` in `.github/workflows/deploy.yml`,
+matching the existing `vars.AWS_REGION` pattern already used lower in that
+file. **Lesson: verify a deploy by the served bundle's content (hash + a
+`grep -c` for an expected string), not just its HTTP status — a 200/401 looks
+identical whether the bundle is correct or silently broken.**
+(`.github/workflows/deploy.yml`)
+
 ## Directory reference
 
 ```
