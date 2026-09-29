@@ -334,6 +334,24 @@ file. **Lesson: verify a deploy by the served bundle's content (hash + a
 identical whether the bundle is correct or silently broken.**
 (`.github/workflows/deploy.yml`)
 
+**Adding `environment: production` to `deploy.yml` broke its own OIDC trust policy —
+`Not authorized to perform sts:AssumeRoleWithWebIdentity` on a role that had been
+working for days.**
+Root cause: once a job declares `environment: <name>`, GitHub Actions changes the shape
+of the OIDC token's `sub` claim — it drops the `ref:refs/heads/BRANCH` suffix entirely
+and replaces it with `environment:<name>`, e.g.
+`repo:ORG@ORG_ID/REPO@REPO_ID:environment:production` instead of
+`repo:ORG@ORG_ID/REPO@REPO_ID:ref:refs/heads/main`. This isn't documented anywhere
+obvious; confirmed live the same way as the original ref-format bug — a temporary step
+printing the real decoded token (see the snippet in the entry above). It's also the only
+correct choice here for another reason: `deploy.yml`/`deploy-staging.yml` both trigger via
+`workflow_run`, and GitHub always runs a `workflow_run`-triggered job using the workflow
+file **as committed on the default branch**, regardless of which branch's CI triggered it
+— so a ref-based condition can't actually distinguish the two workflows (both would
+present `ref:refs/heads/main`); the environment claim can. Fix: `CiConstruct`'s trust
+condition keys off `environment:${environmentName}` (`production` / `staging`), not
+branch. (`infra/lib/ci-construct.ts`)
+
 ## Directory reference
 
 ```
