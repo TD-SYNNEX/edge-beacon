@@ -24,9 +24,19 @@ jobs:
           cache: npm
 
       # Builds dist/client + dist/server/index.mjs, which the CDK app
-      # references as its S3 and Lambda code assets.
+      # references as its S3 and Lambda code assets. VITE_COGNITO_* are not
+      # secret (they end up in the public browser bundle either way) but
+      # .env is gitignored, so they must come from repo variables here —
+      # confirmed live: without them, the built bundle silently omits the
+      # real Cognito domain/client ID and the deployed app crashes at
+      # startup with "Sign-in is not configured" (src/auth.ts), wiping out
+      # a previous manual fix on the very next automated deploy.
       - run: npm ci
       - run: npm run build
+        env:
+          VITE_COGNITO_DOMAIN: ${{ vars.VITE_COGNITO_DOMAIN }}
+          VITE_COGNITO_CLIENT_ID: ${{ vars.VITE_COGNITO_CLIENT_ID }}
+          VITE_COGNITO_REGION: ${{ vars.VITE_COGNITO_REGION }}
 
       # No static AWS keys: this role only exists to be assumed from this
       # repo's main branch (see the trust policy note below) and only has
