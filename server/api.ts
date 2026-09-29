@@ -3,6 +3,7 @@ import type {
   DiscoveryInput,
   DiscoveryResult,
   CatalogMatch,
+  Identity,
   ServerEnv,
   Tier,
 } from "../shared/types.ts";
@@ -14,6 +15,7 @@ import {
 } from "../shared/catalog.ts";
 import { jevReady } from "./jev/client.ts";
 import { handleBeacon } from "./beacon-api.ts";
+import { requireAuth, clampRole } from "./auth.ts";
 
 export const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -247,15 +249,39 @@ export async function handleApi(
   fetcher: typeof fetch = fetch,
 ): Promise<Response> {
   const url = new URL(request.url);
-  if (url.pathname === "/api/config") {
-    if (request.method !== "GET")
-      return json({ message: "Method not allowed." }, 405);
-    return json({ aiReady: available(env), jevReady: jevReady(env) });
-  }
-  if (url.pathname.startsWith("/api/beacon/"))
-    return handleBeacon(request, env, fetcher);
-  if (url.pathname !== "/api/discover")
+  // Checked before the real Cognito JWT verification: rejects a request
+  // straight to the Lambda Function URL, bypassing CloudFront (which always
+  // attaches this header). A no-op in local dev, where ORIGIN_SHARED_SECRET
+  // is unset because there's no CloudFront in front of the API.
+  if (
+    env.ORIGIN_SHARED_SECRET &&
+    request.headers.get("x-origin-verify") !== env.ORIGIN_SHARED_SECRET
+  )
     return json({ message: "Not found." }, 404);
+  if (url.pathname === "/api/config" && request.method !== "GET")
+    return json({ message: "Method not allowed." }, 405);
+  if (
+    url.pathname === "/api/config" ||
+    url.pathname.startsWith("/api/beacon/") ||
+    url.pathname === "/api/discover"
+  ) {
+    const identity = await requireAuth(request, env);
+    if (identity instanceof Response) return identity;
+    if (url.pathname === "/api/config")
+      return json({ aiReady: available(env), jevReady: jevReady(env) });
+    if (url.pathname.startsWith("/api/beacon/"))
+      return handleBeacon(request, env, identity, fetcher);
+    return handleDiscover(request, env, identity, fetcher);
+  }
+  return json({ message: "Not found." }, 404);
+}
+
+async function handleDiscover(
+  request: Request,
+  env: ServerEnv,
+  identity: Identity,
+  fetcher: typeof fetch,
+): Promise<Response> {
   if (request.method !== "POST")
     return json({ message: "Method not allowed." }, 405);
   if (crossSite(request))
@@ -263,6 +289,7 @@ export async function handleApi(
   let input;
   try {
     input = validateInput(await readBoundedJson(request));
+    input.role = clampRole(input.role, identity);
   } catch (error) {
     return json({ message: errorMessage(error) }, 400);
   }

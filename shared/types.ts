@@ -1,3 +1,5 @@
+import type { WorkspacePerspective } from "./edge-types.ts";
+
 export type Role = "partner" | "sales";
 export type LearningRole = "sales" | "technical" | "builder";
 export type Tier = "Explore" | "Build" | "Scale";
@@ -83,6 +85,29 @@ export interface ServerEnv {
   TYPESAFE_API_KEY?: string;
   TYPESAFE_MODEL?: string;
   JEV_ENABLED?: string;
+  /** Cognito user pool the API verifies bearer tokens against. Plain config, not secret. */
+  COGNITO_USER_POOL_ID?: string;
+  COGNITO_CLIENT_ID?: string;
+  COGNITO_REGION?: string;
+  /** ARN of the combined provider-keys secret; unset in local dev, set by the CDK Lambda config. */
+  SECRETS_ARN?: string;
+  /** Only ever "true" in test config. Swaps real Cognito JWT verification for an unsigned test token. */
+  AUTH_TEST_MODE?: string;
+  /**
+   * Set by the CDK Lambda config; CloudFront always attaches this header
+   * when forwarding to the origin. Rejects a request straight to the raw
+   * Function URL, bypassing CloudFront, before the Cognito JWT check runs.
+   * Unset in local dev, where there's no CloudFront in front of the API.
+   */
+  ORIGIN_SHARED_SECRET?: string;
+}
+
+/** A verified caller, derived from a Cognito ID token. Never trust a client-sent equivalent instead. */
+export interface Identity {
+  sub: string;
+  email?: string;
+  /** Cognito groups the token actually carries, intersected against the 4 known perspectives. */
+  groups: WorkspacePerspective[];
 }
 
 export const isRecord = (value: unknown): value is Record<string, unknown> =>

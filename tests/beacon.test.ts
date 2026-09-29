@@ -7,17 +7,30 @@ import { retrieve, BEACON_INDEX } from "../shared/beacon-index.ts";
 import { CATALOG, USE_CASES, EXAMPLES } from "../shared/catalog.ts";
 import { INITIAL_INBOX, CUSTOMERS_DATA } from "../shared/edge-data.ts";
 import { mockFetch } from "./support/jev-mock.ts";
+import { testToken } from "./support/auth-mock.ts";
 
-const ENV = { JEV_ENABLED: "true", TYPESAFE_API_KEY: "test-key" };
+const ENV = {
+  JEV_ENABLED: "true",
+  TYPESAFE_API_KEY: "test-key",
+  AUTH_TEST_MODE: "true",
+};
+/** Full-access test identity; tests that need a narrower one pass their own token. */
+const TOKEN = testToken(["partner", "sales", "practice_leader", "admin"]);
 const stub = mockFetch as unknown as Fetch;
+/** Pass token: "" to build a request with no Authorization header at all. */
 const post = (
   route: string,
   body: unknown,
   origin = "https://beacon.example",
+  token: string = TOKEN,
 ) =>
   new Request(`https://beacon.example/api/beacon/${route}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Origin: origin },
+    headers: {
+      "Content-Type": "application/json",
+      Origin: origin,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify(body),
   });
 const call = async (
@@ -25,26 +38,79 @@ const call = async (
   body: unknown,
   env: object = ENV,
   fetcher: Fetch = stub,
+  token: string = TOKEN,
 ) => {
-  const res = await handleApi(post(route, body), env, fetcher as typeof fetch);
+  const res = await handleApi(
+    post(route, body, "https://beacon.example", token),
+    env,
+    fetcher as typeof fetch,
+  );
   return {
     status: res.status,
     body: (await res.json()) as Record<string, any>,
   };
 };
+/** Pass token: "" to build a request with no Authorization header at all. */
+const configReq = (token: string = TOKEN) =>
+  new Request("https://beacon.example/api/config", {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
 
 test("config reports Jev readiness only when enabled with a key", async () => {
   const cfg = async (env: object) =>
-    (
-      await handleApi(new Request("https://beacon.example/api/config"), env)
-    ).json();
+    (await handleApi(configReq(), { ...env, AUTH_TEST_MODE: "true" })).json();
   assert.equal((await cfg({})).jevReady, false);
   assert.equal((await cfg({ TYPESAFE_API_KEY: "k" })).jevReady, false);
   assert.equal((await cfg(ENV)).jevReady, true);
 });
 
+test("missing or invalid bearer tokens are rejected everywhere under /api/*", async () => {
+  assert.equal((await handleApi(configReq(""), ENV)).status, 401);
+  assert.equal(
+    (
+      await handleApi(
+        post("search", { query: "renewals" }, "https://beacon.example", ""),
+        ENV,
+      )
+    ).status,
+    401,
+  );
+  assert.equal(
+    (
+      await handleApi(
+        post(
+          "search",
+          { query: "renewals" },
+          "https://beacon.example",
+          "garbage",
+        ),
+        ENV,
+      )
+    ).status,
+    401,
+  );
+});
+
+test("a requested perspective outside the caller's groups is rejected", async () => {
+  const partnerOnly = testToken(["partner"]);
+  assert.equal(
+    (await call("inbox", { perspective: "admin" }, ENV, stub, partnerOnly))
+      .status,
+    400,
+  );
+  assert.equal(
+    (await call("inbox", { perspective: "partner" }, ENV, stub, partnerOnly))
+      .status,
+    200,
+  );
+});
+
 test("beacon routes refuse when Jev is off, cross-site, unknown, or invalid", async () => {
-  assert.equal((await call("search", { query: "renewals" }, {})).status, 503);
+  assert.equal(
+    (await call("search", { query: "renewals" }, { AUTH_TEST_MODE: "true" }))
+      .status,
+    503,
+  );
   const cross = await handleApi(
     post("search", { query: "x y" }, "https://evil.example"),
     ENV,

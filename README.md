@@ -23,12 +23,14 @@ When Jev is off or fails, every feature falls back to its guided behavior (subst
 
 Requires Node.js **22.15 or newer** and npm.
 
+The whole workspace is gated behind Cognito sign-in — there is no anonymous mode. Get `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID`, `COGNITO_REGION`, `VITE_COGNITO_DOMAIN`, `VITE_COGNITO_CLIENT_ID`, and `VITE_COGNITO_REGION` from the deployed `infra/` stack's outputs (`cd infra && npx cdk deploy` prints them; the user pool is shared by local dev and prod) and set them in a private `.env` copied from `.env.example`. Local dev's callback URL (`http://127.0.0.1:5173/`) is already registered on the app client by `infra/lib/auth-construct.ts`.
+
 ```sh
 npm ci
 npm run dev
 ```
 
-Open `http://127.0.0.1:5173`. Vite serves the frontend with hot updates and the same `/api/config` and `/api/discover` handlers used in production.
+Open `http://127.0.0.1:5173`. Vite serves the frontend with hot updates and the same `/api/config` and `/api/discover` handlers used in production; signing in redirects to the Cognito Hosted UI first.
 
 | Command                | Purpose                                                                              |
 | ---------------------- | ------------------------------------------------------------------------------------ |
@@ -70,6 +72,7 @@ The interface follows the supplied [TD SYNNEX Design System](https://tdsnx-desig
 ```text
 index.html             Vite HTML entry and accessible workspace markup
 src/main.ts            Typed view state, discovery, filters, dialogs, and navigation
+src/auth.ts            Cognito Hosted UI sign-in (PKCE), token storage, sign-out
 src/beacon-client.ts   Browser calls to Jev routes, with null = fall back
 src/components/        Beacon search (atlas-bar), context pane, NetDojo terminal
 src/views/             Home, Engage, Develop, Grow, Extend, Admin pillars
@@ -80,20 +83,42 @@ shared/catalog.ts      Typed solution catalog, use cases, and learning content
 shared/matcher.ts      Guided matching, shared result composition, brief generation
 shared/beacon-index.ts One searchable index of every customer, course, lab, solution, use case and answer
 shared/edge-data.ts    Sample EDGE data (inbox, Customer 360, courses, labs, agents)
-server/beacon-api.ts   Jev route validation and error handling
+server/auth.ts         Verifies the Cognito bearer token on every /api/* request
+server/beacon-api.ts   Jev route validation, perspective-vs-group enforcement
 server/jev/            Jev client and the six judgment modules
-shared/types.ts        Shared contracts and runtime guards
-server/api.ts          Server-only OpenAI integration and input/output validation
-server/http.ts         Shared Node HTTP adapter for Vite and production
+shared/types.ts        Shared contracts, runtime guards, and the verified Identity type
+server/api.ts          Auth gate, OpenAI integration, and input/output validation
+server/http.ts         Shared Node HTTP adapter for Vite and local production preview
 server/worker.ts       Fetch-compatible API and static asset handler
+server/lambda.ts       Adapts the Worker to a Lambda Function URL event
+server/secrets.ts      Loads OPENAI_API_KEY/TYPESAFE_API_KEY from Secrets Manager in Lambda
 vite.config.ts         Frontend build and development/preview API integration
-scripts/build.ts       Bundles Vite output into a standalone ESM Worker
+scripts/build.ts       Bundles Vite output into a standalone ESM Worker + Lambda handler
 scripts/serve.ts       Runs the built Worker locally
+infra/                 AWS CDK app: S3 + CloudFront + Lambda + Cognito (see below)
 tests/                 TypeScript unit/API tests and Playwright browser flows
 reference/             Preserved original program brief; excluded from builds
 ```
 
-The build outputs `dist/client/` with Vite's optimized assets, `dist/server/index.js` with the standalone Cloudflare-compatible Worker, and `dist/.openai/hosting.json`. The Worker embeds the frontend, so existing Sites hosting needs no asset binding. `dist/` and private environment files remain ignored by Git.
+The build outputs `dist/client/` with Vite's optimized assets and `dist/server/index.mjs`, which exports both the Cloudflare-compatible `Worker` (used by `npm start` and Vite) and a named `handler` for AWS Lambda. `dist/` and private environment files remain ignored by Git.
+
+## AWS-native deployment
+
+`infra/` is a self-contained AWS CDK (TypeScript) app: S3 (private, versioned) behind CloudFront for the static frontend, a Lambda function (Node 22, ARM64) behind a Function URL for `/api/*`, a Cognito user pool with `partner`/`sales`/`practice_leader`/`admin` groups and a public app client (Hosted UI, authorization code + PKCE), and a combined Secrets Manager secret for `OPENAI_API_KEY`/`TYPESAFE_API_KEY`.
+
+```sh
+npm ci && npm run build      # produces dist/client and dist/server/index.mjs
+cd infra
+npm ci
+npx cdk bootstrap            # once per AWS account/region
+npx cdk deploy
+```
+
+`cdk deploy` prints the CloudFront URL, the Cognito Hosted UI domain, and the user pool/client IDs as stack outputs — put those in `.env` (see Get started) and in the deployed Lambda's environment (CDK sets this automatically). After the first deploy, set `{OPENAI_API_KEY, TYPESAFE_API_KEY}` as the printed `ProviderKeysSecretArn` secret's JSON value; the Lambda reads it at cold start (`server/secrets.ts`), so local `.env` values are never used in production.
+
+Deploys to `main` run through `.github/workflows/deploy.yml` via GitHub OIDC (no static AWS keys) once an `AWS_DEPLOY_ROLE_ARN` repository secret is set to an IAM role trusting `token.actions.githubusercontent.com` for `repo:<org>/edge-beacon:ref:refs/heads/main`, scoped to assume the CDK bootstrap roles.
+
+**The real authorization boundary is the API's Cognito JWT verification** (`server/auth.ts`), enforced on every `/api/*` request. The static JS bundle (which embeds this app's sample catalog/customer data, `shared/edge-data.ts`) is reachable without signing in — an edge-level gate on it was tried and removed, because it also blocked the login redirect itself, leaving no way for a first-time visitor to ever reach Cognito. This is an accepted, low-stakes exposure for an internal planning tool with sample data; revisit if that data ever becomes sensitive. The `/api/*` Lambda Function URL is otherwise only reachable through CloudFront in practice: CloudFront always attaches a shared-secret header the API checks before the JWT check, so a request straight to the raw Function URL is rejected.
 
 ## Connecting Jev
 
@@ -116,5 +141,4 @@ Hosted credentials belong in the host's runtime environment. With AI disabled or
 
 The API omits account aliases, uses `store: false`, limits request size, rejects cross-origin submissions, and validates all returned catalog IDs and deployment compatibility. Provider details and credentials are not returned in errors. Briefs remain drafts; generating one does not submit a CRM record, book a session, send a message, or deploy a solution.
 
-This workspace retains browser-local storage. Perspective switches are presentation controls, not authentication or authorization. Shared accounts, durable partner records, SSO, and external workflow destinations require their own implementation before expanding to a multi-user service.
-# edge-beacon
+This workspace retains browser-local storage for non-sensitive preferences (shortlist, notes) under a separate key from the session token, which lives in `sessionStorage`. The whole workspace requires Cognito sign-in, and the perspective selector is limited to the signed-in user's real Cognito groups — the server enforces this independently of whatever the client sends (see `server/auth.ts`, `server/beacon-api.ts`). Durable partner records, SSO/social federation, and external workflow destinations beyond this still require their own implementation.

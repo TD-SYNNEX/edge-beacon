@@ -41,15 +41,27 @@ await mkdir(path.join(root, "dist/server"), { recursive: true });
 await mkdir(path.join(root, "dist/.openai"), { recursive: true });
 await build({
   stdin: {
-    contents: `import { createWorker } from './server/worker.ts'; export default createWorker(${JSON.stringify(assets)});`,
+    contents: `import { createWorker } from './server/worker.ts'; import { createHandler } from './server/lambda.ts'; const worker = createWorker(${JSON.stringify(assets)}); export default worker; export const handler = createHandler(worker);`,
     resolveDir: root,
     loader: "ts",
   },
   bundle: true,
   format: "esm",
-  platform: "browser",
-  target: "es2022",
-  outfile: path.join(root, "dist/server/index.js"),
+  // node: the Lambda handler and its Secrets Manager client need Node's
+  // http/crypto built-ins, which "browser" platform can't resolve.
+  platform: "node",
+  target: "node22",
+  // The AWS SDK's own dependencies (@smithy/node-http-handler) still use
+  // CJS require() for Node built-ins internally; esbuild's ESM output can't
+  // always resolve that as a "dynamic require" and throws at runtime
+  // ("Dynamic require of node:https is not supported"). A real `require`
+  // from node:module fixes it — confirmed live: this crashed every
+  // Secrets Manager call in production until this was added.
+  banner: {
+    js: "import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);",
+  },
+  // .mjs: the Lambda Node runtime only treats a zipped file as ESM with this extension.
+  outfile: path.join(root, "dist/server/index.mjs"),
 });
 await copyFile(
   path.join(root, ".openai/hosting.json"),
