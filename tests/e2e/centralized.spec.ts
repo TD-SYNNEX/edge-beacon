@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures.ts";
 
 test.beforeEach(async ({ page }) => {
   page.on("pageerror", (error) => {

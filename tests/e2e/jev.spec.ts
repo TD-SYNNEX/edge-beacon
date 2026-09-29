@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures.ts";
 import type { Page } from "@playwright/test";
 
 /** Browser wiring with Jev on. Server-side Jev logic is covered in tests/beacon.test.ts. */

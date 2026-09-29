@@ -18,5 +18,8 @@ export default defineConfig({
     command: process.env.E2E_BASE_URL ? "npm start" : "npm run dev",
     url: process.env.E2E_BASE_URL ?? "http://127.0.0.1:5173",
     reuseExistingServer: !process.env.CI,
+    // Accepts tests/e2e/fixtures.ts's unsigned test tokens instead of real
+    // Cognito JWTs. Never set in the deployed Lambda's CDK config.
+    env: { AUTH_TEST_MODE: "true" },
   },
 });

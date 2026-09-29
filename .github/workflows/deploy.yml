@@ -1,0 +1,43 @@
+name: Deploy to AWS
+
+on:
+  workflow_run:
+    workflows: ["Verify AI Atlas"]
+    branches: [main]
+    types: [completed]
+
+permissions:
+  id-token: write # required for GitHub OIDC -> AWS role assumption
+  contents: read
+
+jobs:
+  deploy:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Builds dist/client + dist/server/index.mjs, which the CDK app
+      # references as its S3 and Lambda code assets.
+      - run: npm ci
+      - run: npm run build
+
+      # No static AWS keys: this role only exists to be assumed from this
+      # repo's main branch (see the trust policy note below) and only has
+      # permission to assume the CDK bootstrap roles, which already carry
+      # least-privilege CloudFormation/S3/ECR permissions on their own.
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+      - run: npm ci
+        working-directory: infra
+      - run: npx cdk deploy --require-approval never
+        working-directory: infra

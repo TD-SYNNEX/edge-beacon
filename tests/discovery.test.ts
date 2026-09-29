@@ -10,6 +10,14 @@ import {
 } from "../shared/catalog.ts";
 import { matchSolutions, createBrief } from "../shared/matcher.ts";
 import { handleApi, validateInput, validateResult } from "../server/api.ts";
+import { testToken } from "./support/auth-mock.ts";
+
+const AUTH_TEST_MODE = "true";
+const TOKEN = testToken(["partner", "sales", "practice_leader", "admin"]);
+const authHeaders = (headers: Record<string, string> = {}) => ({
+  ...headers,
+  Authorization: `Bearer ${TOKEN}`,
+});
 
 const input = (overrides: Partial<DiscoveryInput> = {}): DiscoveryInput => ({
   need: EXAMPLES[0].text,
@@ -25,10 +33,10 @@ const input = (overrides: Partial<DiscoveryInput> = {}): DiscoveryInput => ({
 const req = (body: unknown) =>
   new Request("https://workspace.example/api/discover", {
     method: "POST",
-    headers: {
+    headers: authHeaders({
       "Content-Type": "application/json",
       Origin: "https://workspace.example",
-    },
+    }),
     body: JSON.stringify(body),
   });
 
@@ -153,11 +161,13 @@ test("invalid requests reject missing needs, oversized fields, and unsupported o
 test("the unconfigured preview stays honestly unavailable for AI and reveals no secrets", async () => {
   let called = false;
   const config = await handleApi(
-    new Request("https://workspace.example/api/config"),
-    { OPENAI_API_KEY: "unit-test-secret", AI_ENABLED: "false" },
+    new Request("https://workspace.example/api/config", {
+      headers: authHeaders(),
+    }),
+    { OPENAI_API_KEY: "unit-test-secret", AI_ENABLED: "false", AUTH_TEST_MODE },
   );
   assert.deepEqual(await config.json(), { aiReady: false, jevReady: false });
-  const result = await handleApi(req(input()), {}, async () => {
+  const result = await handleApi(req(input()), { AUTH_TEST_MODE }, async () => {
     called = true;
     return new Response();
   });
@@ -168,19 +178,19 @@ test("the unconfigured preview stays honestly unavailable for AI and reveals no 
 test("cross-origin submissions and oversized raw bodies are rejected", async () => {
   const foreign = new Request("https://workspace.example/api/discover", {
     method: "POST",
-    headers: {
+    headers: authHeaders({
       Origin: "https://other.example",
       "Content-Type": "application/json",
-    },
+    }),
     body: JSON.stringify(input()),
   });
-  assert.equal((await handleApi(foreign, {})).status, 403);
+  assert.equal((await handleApi(foreign, { AUTH_TEST_MODE })).status, 403);
   const large = new Request("https://workspace.example/api/discover", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({ need: "a".repeat(25000) }),
   });
-  assert.equal((await handleApi(large, {})).status, 400);
+  assert.equal((await handleApi(large, { AUTH_TEST_MODE })).status, 400);
 });
 test("server contract uses Responses structured output, omits account identifiers, and validates catalog IDs", async () => {
   const context = input({ account: "PRIVATE_ACCOUNT_42" });
@@ -210,7 +220,11 @@ test("server contract uses Responses structured output, omits account identifier
   };
   const response = await handleApi(
     req(context),
-    { OPENAI_API_KEY: "unit-test-not-a-real-key", AI_ENABLED: "true" },
+    {
+      OPENAI_API_KEY: "unit-test-not-a-real-key",
+      AI_ENABLED: "true",
+      AUTH_TEST_MODE,
+    },
     mock,
   );
   assert.equal(response.status, 200);
@@ -255,6 +269,7 @@ test("provider errors, refusals, malformed outputs, and timeouts fail without a 
   const env = {
     OPENAI_API_KEY: "unit-test-not-a-real-key",
     AI_ENABLED: "true",
+    AUTH_TEST_MODE,
   };
   const quota = await handleApi(
     req(input()),

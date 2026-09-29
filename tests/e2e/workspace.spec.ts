@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, testToken } from "./fixtures.ts";
 import { readFile } from "node:fs/promises";
 import { EXAMPLES } from "../../shared/catalog.ts";
 import { matchSolutions } from "../../shared/matcher.ts";
@@ -321,7 +321,9 @@ test("tablet atlas has no horizontal overflow and API config is reachable", asyn
     path: "test-results/tablet-atlas.png",
     fullPage: true,
   });
-  const response = await request.get("/api/config");
+  const response = await request.get("/api/config", {
+    headers: { Authorization: `Bearer ${testToken(["partner"])}` },
+  });
   expect(response.status()).toBe(200);
   expect(await response.json()).toEqual({ aiReady: false, jevReady: false });
 });

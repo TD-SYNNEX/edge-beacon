@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createWorker } from "../server/worker.ts";
+import { testToken } from "./support/auth-mock.ts";
+
+const TOKEN = testToken(["partner"]);
 
 const worker = createWorker({
   "/": {
@@ -54,9 +57,23 @@ test("Worker serves Vite assets with matching MIME, HEAD, cache and security hea
 
 test("Worker routes API requests to the server handler without exposing environment values", async () => {
   const response = await worker.fetch(
-    new Request("https://atlas.example/api/config"),
-    { AI_ENABLED: "false", OPENAI_API_KEY: "test-only" },
+    new Request("https://atlas.example/api/config", {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    }),
+    {
+      AI_ENABLED: "false",
+      OPENAI_API_KEY: "test-only",
+      AUTH_TEST_MODE: "true",
+    },
   );
   assert.deepEqual(await response.json(), { aiReady: false, jevReady: false });
   assert.equal(response.headers.get("cache-control"), "no-store");
+});
+
+test("Worker's /api/config rejects a request with no bearer token", async () => {
+  const response = await worker.fetch(
+    new Request("https://atlas.example/api/config"),
+    { AUTH_TEST_MODE: "true" },
+  );
+  assert.equal(response.status, 401);
 });

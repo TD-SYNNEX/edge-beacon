@@ -1,6 +1,6 @@
 import type { Fetch } from "@typesafe-ai/sdk";
 import { isRecord, errorMessage } from "../shared/types.ts";
-import type { ServerEnv } from "../shared/types.ts";
+import type { Identity, ServerEnv } from "../shared/types.ts";
 import { CUSTOMERS_DATA } from "../shared/edge-data.ts";
 import type { WorkspacePerspective } from "../shared/edge-types.ts";
 import { json, readBoundedJson, crossSite, validateInput } from "./api.ts";
@@ -11,13 +11,7 @@ import { jevMatch } from "./jev/match.ts";
 import { triageInbox } from "./jev/inbox.ts";
 import { gradeCommand } from "./jev/lab.ts";
 import { checkOpportunities } from "./jev/opportunities.ts";
-
-const PERSPECTIVES: WorkspacePerspective[] = [
-  "partner",
-  "sales",
-  "practice_leader",
-  "admin",
-];
+import { defaultPerspective, clampRole } from "./auth.ts";
 
 /** Lab devices are server-known; the browser only names one. */
 const LAB_DEVICES: Record<string, { name: string; os: string; type: string }> =
@@ -39,10 +33,25 @@ const LAB_DEVICES: Record<string, { name: string; os: string; type: string }> =
     },
   };
 
-const perspectiveOf = (body: Record<string, unknown>): WorkspacePerspective => {
-  const value = body.perspective ?? "partner";
-  if (!PERSPECTIVES.includes(value as WorkspacePerspective))
-    throw new Error("Choose a valid perspective.");
+/**
+ * The client may only ever act as a perspective it actually holds — this is
+ * the enforcement point that replaces the old fully-client-trusted field.
+ */
+const perspectiveOf = (
+  body: Record<string, unknown>,
+  identity: Identity,
+): WorkspacePerspective => {
+  if (body.perspective === undefined) {
+    const fallback = defaultPerspective(identity);
+    if (!fallback) throw new Error("Your account has no workspace group.");
+    return fallback;
+  }
+  const value = body.perspective;
+  if (
+    typeof value !== "string" ||
+    !identity.groups.includes(value as WorkspacePerspective)
+  )
+    throw new Error("You don't have access to that perspective.");
   return value as WorkspacePerspective;
 };
 const textOf = (
@@ -62,13 +71,26 @@ const textOf = (
 };
 
 /** Routes validate synchronously (throw → 400) before returning the Jev promise. */
-type Route = (jev: Jev, body: Record<string, unknown>) => Promise<unknown>;
+type Route = (
+  jev: Jev,
+  body: Record<string, unknown>,
+  identity: Identity,
+) => Promise<unknown>;
 
 const ROUTES: Record<string, Route> = {
-  search: (jev, body) =>
-    askBeacon(jev, textOf(body, "query", 2, 300), perspectiveOf(body)),
-  match: (jev, body) => jevMatch(jev, validateInput(body)),
-  inbox: (jev, body) => triageInbox(jev, perspectiveOf(body)),
+  search: (jev, body, identity) =>
+    askBeacon(
+      jev,
+      textOf(body, "query", 2, 300),
+      perspectiveOf(body, identity),
+    ),
+  match: (jev, body, identity) => {
+    const input = validateInput(body);
+    input.role = clampRole(input.role, identity);
+    return jevMatch(jev, input);
+  },
+  inbox: (jev, body, identity) =>
+    triageInbox(jev, perspectiveOf(body, identity)),
   grade: (jev, body) => {
     const id = String(body.deviceId);
     const device = Object.hasOwn(LAB_DEVICES, id) ? LAB_DEVICES[id] : undefined;
@@ -85,6 +107,7 @@ const ROUTES: Record<string, Route> = {
 export async function handleBeacon(
   request: Request,
   env: ServerEnv,
+  identity: Identity,
   fetcher?: Fetch,
 ): Promise<Response> {
   const name = new URL(request.url).pathname.slice("/api/beacon/".length);
@@ -112,7 +135,7 @@ export async function handleBeacon(
   const jev = createJev(env, fetcher);
   let work: Promise<unknown>;
   try {
-    work = route(jev, body);
+    work = route(jev, body, identity);
   } catch (error) {
     return json({ message: errorMessage(error) }, 400);
   }

@@ -31,6 +31,8 @@ import "./styles/accessibility.css";
 import { ContextPane } from "./components/context-pane.ts";
 import { AtlasBar } from "./components/atlas-bar.ts";
 import { beacon, beaconPost } from "./beacon-client.ts";
+import { ensureSignedIn, getAuthHeader, getGroups, signOut } from "./auth.ts";
+import type { WorkspacePerspective } from "../shared/edge-types.ts";
 import { HomeView } from "./views/home-view.ts";
 import { EngageView } from "./views/engage-view.ts";
 import { DevelopView } from "./views/develop-view.ts";
@@ -38,6 +40,28 @@ import { GrowView } from "./views/grow-view.ts";
 import { ExtendView } from "./views/extend-view.ts";
 import { AdminView } from "./views/admin-view.ts";
 import { CUSTOMERS_DATA, COURSES_DATA } from "../shared/edge-data.ts";
+
+// Gate the whole workspace behind Cognito before anything else runs. On an
+// unauthenticated visit this redirects to Hosted UI and never resolves.
+await ensureSignedIn();
+
+/**
+ * The signed-in user's real Cognito groups — the only perspectives they may
+ * ever act as. Falls back to "partner" if an account somehow has none, so
+ * the UI never crashes; the server enforces the real boundary regardless.
+ */
+const PERSPECTIVE_PRECEDENCE: WorkspacePerspective[] = [
+  "admin",
+  "practice_leader",
+  "sales",
+  "partner",
+];
+const allowedPerspectives: WorkspacePerspective[] = getGroups().length
+  ? getGroups()
+  : ["partner"];
+const initialPerspective =
+  PERSPECTIVE_PRECEDENCE.find((p) => allowedPerspectives.includes(p)) ??
+  "partner";
 
 const entities: Record<string, string> = {
   "&": "&amp;",
@@ -306,12 +330,18 @@ async function runMatching() {
       activeController.signal,
     );
     if (!result && state.ai) {
+      const authHeader = getAuthHeader();
+      if (!authHeader) return signOut();
       const response = await fetch("/api/discover", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: authHeader,
+        },
         body: JSON.stringify(input),
         signal: activeController.signal,
       });
+      if (response.status === 401) return signOut();
       const body = await response.json();
       if (!response.ok)
         throw new Error(
@@ -584,7 +614,34 @@ let growView: GrowView;
 let extendView: ExtendView;
 let adminView: AdminView;
 
+/** Hides any perspective control the signed-in user's groups don't grant. */
+function restrictPerspectiveOptions() {
+  const select = document.querySelector<HTMLSelectElement>(
+    "#perspective-select",
+  );
+  if (select) {
+    $$<HTMLOptionElement>("option", select).forEach((option) => {
+      if (!allowedPerspectives.includes(option.value as WorkspacePerspective))
+        option.remove();
+    });
+    const container = select.closest<HTMLElement>(".perspective-selector");
+    if (container) container.hidden = select.options.length <= 1;
+  }
+  const roleButtons = $$<HTMLButtonElement>("[data-role]");
+  roleButtons.forEach((button) => {
+    if (
+      !allowedPerspectives.includes(button.dataset.role as WorkspacePerspective)
+    )
+      button.hidden = true;
+  });
+  const segmented = roleButtons[0]?.closest<HTMLElement>(".segmented.roles");
+  if (segmented)
+    segmented.hidden = roleButtons.filter((b) => !b.hidden).length <= 1;
+}
+
 function setRole(role: string, announce = true) {
+  if (!allowedPerspectives.includes(role as WorkspacePerspective))
+    role = initialPerspective;
   state.role = role === "sales" ? "sales" : "partner";
   beacon.perspective =
     role === "sales" || role === "admin" || role === "practice_leader"
@@ -850,7 +907,8 @@ renderStarter();
 renderLibrary();
 renderUseCases();
 renderTracks();
-setRole(state.role, false);
+restrictPerspectiveOptions();
+setRole(initialPerspective, false);
 route(false);
 
 $("#discovery-form").addEventListener("submit", (event) => {
@@ -1173,11 +1231,23 @@ document.addEventListener("click", async (event) => {
       closeDialogs();
       toast("This browser’s saved draft and shortlist are cleared.");
       break;
+    case "sign-out":
+      signOut();
+      break;
   }
 });
 
-fetch("/api/config", { cache: "no-store" })
-  .then((response) => (response.ok ? response.json() : null))
+fetch("/api/config", {
+  cache: "no-store",
+  headers: getAuthHeader() ? { Authorization: getAuthHeader()! } : {},
+})
+  .then((response) => {
+    if (response.status === 401) {
+      signOut();
+      return null;
+    }
+    return response.ok ? response.json() : null;
+  })
   .then((config) => {
     state.ai = config?.aiReady === true;
     beacon.ready = config?.jevReady === true;

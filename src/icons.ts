@@ -52,6 +52,7 @@ import {
   Play,
   Bell,
   Command,
+  LogOut,
 } from "lucide";
 import type { IconNode } from "lucide";
 
@@ -108,6 +109,7 @@ const icons: Record<string, IconNode> = {
   play: Play,
   bell: Bell,
   command: Command,
+  logout: LogOut,
 };
 
 export const icon = (name = "compass") =>

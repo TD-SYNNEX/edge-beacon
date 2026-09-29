@@ -9,3 +9,9 @@ node_modules/
 # Browser verification output
 test-results/
 playwright-report/
+
+# CDK synth output (infra/)
+cdk.out/
+
+# graphify knowledge-graph output (regenerable, not source)
+graphify-out/
