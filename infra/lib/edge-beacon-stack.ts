@@ -67,7 +67,7 @@ export class EdgeBeaconStack extends Stack {
     const ci = new CiConstruct(this, "Ci", {
       githubOrg: GITHUB_ORG,
       githubRepo: GITHUB_REPO,
-      branch: isProd ? "main" : "staging",
+      environmentName: props.stage,
       roleName: isProd
         ? "edge-beacon-github-deploy"
         : "edge-beacon-github-deploy-staging",
