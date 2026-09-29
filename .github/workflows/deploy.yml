@@ -14,6 +14,7 @@ jobs:
   deploy:
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    environment: production
     steps:
       - uses: actions/checkout@v4
         with:
@@ -49,5 +50,8 @@ jobs:
 
       - run: npm ci
         working-directory: infra
-      - run: npx cdk deploy --require-approval never
+      # Explicit stack name: the CDK app now also defines
+      # EdgeBeaconStagingStack (see deploy-staging.yml), so a bare
+      # `cdk deploy` with no argument would refuse to pick one.
+      - run: npx cdk deploy EdgeBeaconStack --require-approval never
         working-directory: infra
