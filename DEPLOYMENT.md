@@ -40,7 +40,7 @@ GitHub (TD-SYNNEX/edge-beacon, branch main)
 - Node.js 22.15+, npm.
 - AWS CLI v2.32+ and `aws login` access to account **655790569185** (profile used
   throughout this doc: `Tanishq-TDS` — substitute your own if different). `aws login
-  --profile <name>` gets short-lived credentials via SSO-style browser auth; prefer it
+--profile <name>` gets short-lived credentials via SSO-style browser auth; prefer it
   over long-lived access keys (see the `signing-in-to-aws` skill/guide).
 - `gh` CLI authenticated with admin access to `TD-SYNNEX/edge-beacon`, if changing GitHub
   secrets/settings.
@@ -98,7 +98,7 @@ Push to `main` (or merge a PR into it) and this happens automatically, no manual
 1. **`.github/workflows/ci.yml`** ("Verify AI Atlas") runs on every push/PR: format check,
    unit tests, `npm run build`, Playwright e2e against both Vite dev and the built Worker.
 2. **`.github/workflows/deploy.yml`** ("Deploy to AWS") triggers only after `ci.yml`
-   *succeeds* on `main` (via `workflow_run`, not a second `push` trigger — a red CI run
+   _succeeds_ on `main` (via `workflow_run`, not a second `push` trigger — a red CI run
    never deploys). It assumes the OIDC role, rebuilds (`npm run build`), and runs
    `cdk deploy --require-approval never`.
 3. CDK's `BucketDeployment` (`infra/lib/site-construct.ts`) uploads the new
@@ -153,7 +153,7 @@ Keep this section growing. Each entry cost real debugging time; don't rediscover
 
 **Every `/api/*` request 401'd even with a valid signed-in token.**
 Root cause: `server/lambda.ts`'s handler used a default parameter
-(`processEnv = process.env`) expecting a 3rd argument to be *absent* on invocation. AWS
+(`processEnv = process.env`) expecting a 3rd argument to be _absent_ on invocation. AWS
 Lambda's Node runtime always passes a 3rd argument (a completion callback, for the legacy
 callback-style handler signature) even though async handlers ignore it — so the default
 never fired, and `processEnv` silently became that callback object instead of the real
@@ -177,7 +177,7 @@ require = createRequire(import.meta.url);" }` in the esbuild config. (`scripts/b
 
 **A fresh visitor got a 403 on the JS/CSS bundle and could never reach login.**
 Root cause: a CloudFront Function gating `/assets/*` behind a post-login session cookie
-also blocked the JS bundle that *runs* the login redirect — a chicken-and-egg lock-out.
+also blocked the JS bundle that _runs_ the login redirect — a chicken-and-egg lock-out.
 There's no way to split "the code that starts login" from "the app bundle" without a
 separate build entry point, which wasn't worth it. Fix: removed the edge gate entirely;
 the real security boundary was always the API's JWT check, not the static bundle.
@@ -187,7 +187,7 @@ the real security boundary was always the API's JWT check, not the static bundle
 The `Settings` field on `AWS::Cognito::ManagedLoginBranding` is an opaque `document` type
 with no published schema. Correct approach: create a style with
 `UseCognitoProvidedValues: true`, read it back with
-`DescribeManagedLoginBrandingByClient --return-merged-resources` to get the *real* key
+`DescribeManagedLoginBrandingByClient --return-merged-resources` to get the _real_ key
 names, patch only what's needed, and verify visually in a browser before committing the
 JSON to CDK (`infra/lib/assets/managed-login-settings.json`). Also: a plain
 `pageBackground.image.enabled: false` does **not** remove Cognito's default decorative
