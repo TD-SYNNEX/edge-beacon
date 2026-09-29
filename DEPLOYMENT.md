@@ -4,6 +4,12 @@ This is the one file to read before deploying, redeploying, or debugging a
 deploy of EDGE Beacon. Written so an AI agent (or a human) with no prior
 context on this repo can act correctly on the first read.
 
+**Status: live and verified.** `https://edgebeaconai.com` serves the app with a
+real ACM certificate (not a placeholder), and the GitHub Actions deploy
+pipeline has completed a real, unassisted, end-to-end run
+(push → CI → OIDC → `cdk deploy` → live). See "Everyday deploy" below for what
+that pipeline actually does.
+
 ## Architecture at a glance
 
 ```
@@ -66,8 +72,10 @@ GitHub (TD-SYNNEX/edge-beacon, branch main)
    gh secret set AWS_DEPLOY_ROLE_ARN --repo TD-SYNNEX/edge-beacon --body "<arn>"
    ```
    This is the only credential GitHub Actions needs — no static AWS keys anywhere. The
-   role trusts GitHub's OIDC provider, scoped to `repo:TD-SYNNEX/edge-beacon:ref:refs/heads/main`
-   only (see `infra/lib/ci-construct.ts`) — no other repo or branch can assume it.
+   role trusts GitHub's OIDC provider, scoped to this exact repo + branch only (see
+   `infra/lib/ci-construct.ts`) — no other repo or branch can assume it. **The trust
+   condition's `sub` value is not the classic `repo:ORG/REPO:ref:refs/heads/BRANCH`
+   format** — see the troubleshooting entry below before changing it.
 6. **Provider keys** (optional, enables AI/Jev features): the deploy prints a
    `ProviderKeysSecretArn` output. Set real values:
    ```sh
@@ -145,7 +153,12 @@ These are real AWS eventual-consistency windows, not deploy failures. If you hit
   "Login pages unavailable."
 - ACM certificate DNS validation depends on external DNS propagation (GoDaddy → Route 53
   delegation, or the validation CNAME itself) — this can take anywhere from minutes to
-  longer, with no fixed SLA.
+  longer, with no fixed SLA. Confirmed live: the `.com` registry itself can already show
+  the new nameservers (verify with `dig NS edgebeaconai.com @a.gtld-servers.net`) while
+  major public resolvers (Google's 8.8.8.8, your own machine's) still serve a stale
+  negative-cached answer for a while longer — that staleness does not block ACM, which
+  resolves authoritatively. To check the app is really live without waiting on your own
+  resolver, force the real IP: `curl --resolve edgebeaconai.com:443:<a-record-ip> https://edgebeaconai.com/`.
 
 ## Troubleshooting — real bugs hit and fixed during this build
 
@@ -201,6 +214,34 @@ CloudFormation list token, not a real array. Calling native `.join(", ")` on it 
 code (all internal to `aws-cdk-lib`) — hard to place without isolating the exact line via
 a standalone test file. Fix: `Fn.join(", ", list)` from `aws-cdk-lib`, never the native
 method, on anything that came from a CDK attribute lookup. (`infra/lib/edge-beacon-stack.ts`)
+
+**GitHub Actions deploy failed with `Not authorized to perform
+sts:AssumeRoleWithWebIdentity` despite a trust policy that looked correct.**
+Root cause: this GitHub org/account issues the newer "immutable" OIDC subject
+format, which embeds numeric owner/repo IDs —
+`repo:ORG@ORG_ID/REPO@REPO_ID:ref:refs/heads/BRANCH` (e.g.
+`repo:TD-SYNNEX@109152567/edge-beacon@1387962932:ref:refs/heads/main`) — not
+the classic `repo:ORG/REPO:ref:refs/heads/BRANCH` documented as the default
+example. Don't assume the classic format; if this ever needs re-deriving
+(e.g. for a new repo), add a temporary step to the workflow that prints the
+real token and read the `sub` claim directly rather than guessing:
+
+```sh
+curl -sSL -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+  "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" \
+| node -e "const b=JSON.parse(require('fs').readFileSync(0,'utf8'));
+  console.log(Buffer.from(b.value.split('.')[1],'base64url').toString())"
+```
+
+(`infra/lib/ci-construct.ts`)
+
+**A GitHub Actions deploy can never fix its own OIDC trust policy.**
+Corollary of the above: when the deploy role's _own_ trust policy is wrong,
+GitHub Actions can't assume it to run `cdk deploy` and fix that same trust
+policy — a chicken-and-egg lock-out. Any change to `infra/lib/ci-construct.ts`
+that touches the trust condition must be applied with a manual
+`cdk deploy --profile <profile>` first; only after that succeeds can CI/CD
+resume driving deploys itself.
 
 **AWS session silently expiring mid-session.** `aws login` credentials are short-lived
 (auto-rotate ~15 min, valid up to ~12h). If AWS CLI calls start failing with an opaque
