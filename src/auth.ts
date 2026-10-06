@@ -1,4 +1,5 @@
 import type { WorkspacePerspective } from "../shared/edge-types.ts";
+import { showLanding } from "./landing.ts";
 
 /**
  * Cognito Hosted UI sign-in (authorization code + PKCE, public client, no
@@ -114,11 +115,14 @@ function clearStored(): void {
 const isValid = (auth: StoredAuth | undefined): auth is StoredAuth =>
   !!auth && auth.expiresAt > Date.now();
 
-async function redirectToSignIn(cfg: AuthConfig): Promise<never> {
+async function redirectToSignIn(cfg: AuthConfig, target = ""): Promise<never> {
   const verifier = randomToken();
   const state = randomToken();
   try {
-    sessionStorage.setItem(PENDING_KEY, JSON.stringify({ verifier, state }));
+    sessionStorage.setItem(
+      PENDING_KEY,
+      JSON.stringify({ verifier, state, target }),
+    );
   } catch {}
   const params = new URLSearchParams({
     client_id: cfg.clientId,
@@ -137,8 +141,8 @@ async function exchangeCode(
   cfg: AuthConfig,
   code: string,
   state: string,
-): Promise<boolean> {
-  let pending: { verifier: string; state: string } | undefined;
+): Promise<string | false> {
+  let pending: { verifier: string; state: string; target?: string } | undefined;
   try {
     const raw = sessionStorage.getItem(PENDING_KEY);
     pending = raw ? JSON.parse(raw) : undefined;
@@ -168,13 +172,14 @@ async function exchangeCode(
     expiresAt: Date.now() + body.expires_in * 1000,
     groups: decodeGroups(body.id_token),
   });
-  return true;
+  return pending.target ?? ""; // route the user asked for before signing in
 }
 
 /**
- * Ensures a signed-in session exists before the app renders. Handles a
- * returning `?code=` from Hosted UI, otherwise redirects to it and never
- * returns (the browser navigates away). Call once, before any rendering.
+ * Ensures a signed-in session exists before the workspace renders. Handles a
+ * returning `?code=` from Hosted UI. Otherwise a deep link redirects to Hosted
+ * UI, and a bare "/" shows the public home page; either way it never returns.
+ * Call once, before any rendering.
  */
 export async function ensureSignedIn(): Promise<void> {
   if (isValid(readStored())) return;
@@ -182,18 +187,28 @@ export async function ensureSignedIn(): Promise<void> {
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const cfg = config();
+  let failed = false;
   if (cfg && code && state) {
-    const ok = await exchangeCode(cfg, code, state);
+    const target = await exchangeCode(cfg, code, state);
     url.searchParams.delete("code");
     url.searchParams.delete("state");
+    if (target !== false) url.hash = target;
     window.history.replaceState({}, "", url.pathname + url.search + url.hash);
-    if (ok) return;
+    if (target !== false) return;
+    failed = true;
   }
   if (!cfg)
     throw new Error(
       "Sign-in is not configured (VITE_COGNITO_DOMAIN/CLIENT_ID/REGION missing).",
     );
-  await redirectToSignIn(cfg);
+  // A deep link into the workspace signs in at once; the home page is public.
+  if (window.location.hash.length > 1)
+    await redirectToSignIn(cfg, window.location.hash);
+  showLanding(
+    (hash) => void redirectToSignIn(cfg, hash),
+    failed ? "Sign-in did not complete. Please try again." : undefined,
+  );
+  return new Promise<never>(() => {}); // the workspace stays unrendered until sign-in
 }
 
 export const getAuthHeader = (): string | undefined => {

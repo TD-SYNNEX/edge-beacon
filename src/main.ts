@@ -32,6 +32,7 @@ import { ContextPane } from "./components/context-pane.ts";
 import { AtlasBar } from "./components/atlas-bar.ts";
 import { beacon, beaconPost } from "./beacon-client.ts";
 import { ensureSignedIn, getAuthHeader, getGroups, signOut } from "./auth.ts";
+import { hideLanding, showLanding } from "./landing.ts";
 import type { WorkspacePerspective } from "../shared/edge-types.ts";
 import { HomeView } from "./views/home-view.ts";
 import { EngageView } from "./views/engage-view.ts";
@@ -710,6 +711,9 @@ function syncNavigationAccessibility() {
 }
 
 function route(focus = true) {
+  // Empty hash is the public home page; everything else is the workspace.
+  if (!location.hash.slice(1)) return showLanding();
+  hideLanding();
   const allowed = [
     "home",
     "engage",
