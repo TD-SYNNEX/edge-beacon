@@ -20,6 +20,13 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     // Accepts tests/e2e/fixtures.ts's unsigned test tokens instead of real
     // Cognito JWTs. Never set in the deployed Lambda's CDK config.
-    env: { AUTH_TEST_MODE: "true" },
+    env: {
+      AUTH_TEST_MODE: "true",
+      // Placeholders so signed-out specs can reach the sign-in redirect in CI,
+      // where .env (and the real pool) is absent. Nothing contacts Cognito.
+      VITE_COGNITO_DOMAIN: "e2e",
+      VITE_COGNITO_CLIENT_ID: "e2e",
+      VITE_COGNITO_REGION: "us-east-1",
+    },
   },
 });
