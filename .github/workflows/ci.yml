@@ -20,7 +20,14 @@ jobs:
       - run: npm ci
       - run: npm run format:check
       - run: npm test
+      # Placeholder Cognito values so the signed-out landing specs reach the
+      # sign-in redirect; this build is verification only (deploys build with
+      # the real values from environment variables).
       - run: npm run build
+        env:
+          VITE_COGNITO_DOMAIN: e2e
+          VITE_COGNITO_CLIENT_ID: e2e
+          VITE_COGNITO_REGION: us-east-1
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - run: npm run test:e2e
